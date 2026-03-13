@@ -1,0 +1,61 @@
+export const CLOTH_NUMBERS = ['000', '00', '0', '1', '2', '3', '4'];
+
+export const APP_NAME = 'Kapda Manager';
+export const DB_NAME = 'pms.db';
+
+export const COLORS = {
+  light: {
+    primary: '#4F46E5',
+    primaryDark: '#3730A3',
+    primaryLight: '#818CF8',
+    secondary: '#7C3AED',
+    background: '#F1F5F9',
+    surface: '#FFFFFF',
+    card: '#FFFFFF',
+    text: '#1E293B',
+    textSecondary: '#475569',
+    textMuted: '#94A3B8',
+    border: '#E2E8F0',
+    divider: '#F1F5F9',
+    success: '#10B981',
+    successLight: '#D1FAE5',
+    warning: '#F59E0B',
+    warningLight: '#FEF3C7',
+    error: '#EF4444',
+    errorLight: '#FEE2E2',
+    info: '#3B82F6',
+    infoLight: '#DBEAFE',
+    white: '#FFFFFF',
+    black: '#000000',
+    shadow: '#64748B',
+    tabBar: '#FFFFFF',
+  },
+  dark: {
+    primary: '#6366F1',
+    primaryDark: '#4F46E5',
+    primaryLight: '#A5B4FC',
+    secondary: '#8B5CF6',
+    background: '#0F172A',
+    surface: '#1E293B',
+    card: '#1E293B',
+    text: '#F1F5F9',
+    textSecondary: '#CBD5E1',
+    textMuted: '#64748B',
+    border: '#334155',
+    divider: '#1E293B',
+    success: '#34D399',
+    successLight: '#064E3B',
+    warning: '#FCD34D',
+    warningLight: '#78350F',
+    error: '#F87171',
+    errorLight: '#7F1D1D',
+    info: '#60A5FA',
+    infoLight: '#1E3A5F',
+    white: '#FFFFFF',
+    black: '#000000',
+    shadow: '#000000',
+    tabBar: '#1E293B',
+  },
+};
+
+export type AppColors = typeof COLORS.light;

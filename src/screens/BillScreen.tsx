@@ -53,17 +53,22 @@ export default function BillScreen({ navigation, route }: any) {
   const fetchBill = async () => {
     if (!customerName || !receivedDate) return;
     const data = await queries.getEntriesByCustomerAndDate(customerName, receivedDate);
+    // Sort by clothNumber (as string, or use localeCompare for string sort)
+    data.sort((a, b) => a.clothNumber.localeCompare(b.clothNumber, undefined, { numeric: true }));
     setBillEntries(data);
     setSearched(true);
   };
 
   const grandTotal = billEntries.reduce((s, e) => s + e.totalCost, 0);
   const totalLength = billEntries.reduce((s, e) => s + e.clothLength, 0);
+  const totalColoring = billEntries.reduce((s, e) => s + e.coloringTotal, 0);
 
+  // Always sort billEntries before generating bill
+  const sortedBillEntries = [...billEntries].sort((a, b) => a.clothNumber.localeCompare(b.clothNumber, undefined, { numeric: true }));
   const billData: BillData = {
     customerName,
     receivedDate,
-    entries: billEntries,
+    entries: sortedBillEntries,
     grandTotal,
     totalLength,
     billDate: todayDB(),
@@ -209,36 +214,36 @@ export default function BillScreen({ navigation, route }: any) {
               <>
                 {/* Table Header */}
                 <View style={[s.tableRow, s.tableHeader, { backgroundColor: colors.primary + '15' }]}>
-                  <Text style={[s.thCell, s.col1, { color: colors.primary }]}>#</Text>
-                  <Text style={[s.thCell, s.col2, { color: colors.primary }]}>No.</Text>
-                  <Text style={[s.thCell, s.col3, { color: colors.primary }]}>Length</Text>
-                  <Text style={[s.thCell, s.col4, { color: colors.primary }]}>Cloth</Text>
-                  <Text style={[s.thCell, s.col5, { color: colors.primary }]}>Color</Text>
-                  <Text style={[s.thCell, s.col6, { color: colors.primary }]}>Total</Text>
+                    <Text style={[s.thCell, s.col1, { color: colors.primary }]}>#</Text>
+                    <Text style={[s.thCell, s.col2, { color: colors.primary }]}>No.</Text>
+                    <Text style={[s.thCell, s.col3, { color: colors.primary }]}>Length</Text>
+                    <Text style={[s.thCell, s.col4, { color: colors.primary }]}>Color Rate</Text>
+                    <Text style={[s.thCell, s.col5, { color: colors.primary }]}>Color Amount</Text>
+                    <Text style={[s.thCell, s.col6, { color: colors.primary }]}>Total</Text>
                 </View>
 
-                {billEntries.map((entry, idx) => (
-                  <View
-                    key={entry.id}
-                    style={[s.tableRow, { backgroundColor: idx % 2 === 0 ? colors.surface : colors.background, borderBottomColor: colors.border }]}
-                  >
-                    <Text style={[s.tdCell, s.col1, { color: colors.textSecondary }]}>{idx + 1}</Text>
-                    <Text style={[s.tdCell, s.col2, { color: colors.text, fontWeight: '700' }]}>{entry.clothNumber}</Text>
-                    <Text style={[s.tdCell, s.col3, { color: colors.text }]}>{entry.clothLength.toFixed(2)}m</Text>
-                    <Text style={[s.tdCell, s.col4, { color: colors.text }]}>{formatCurrency(entry.clothTotal)}</Text>
-                    <Text style={[s.tdCell, s.col5, { color: colors.text }]}>{formatCurrency(entry.coloringTotal)}</Text>
-                    <Text style={[s.tdCell, s.col6, { color: colors.success, fontWeight: '700' }]}>{formatCurrency(entry.totalCost)}</Text>
-                  </View>
-                ))}
+                  {billEntries.map((entry, idx) => (
+                    <View
+                      key={entry.id}
+                      style={[s.tableRow, { backgroundColor: idx % 2 === 0 ? colors.surface : colors.background, borderBottomColor: colors.border }]}
+                    >
+                      <Text style={[s.tdCell, s.col1, { color: colors.textSecondary }]}>{idx + 1}</Text>
+                      <Text style={[s.tdCell, s.col2, { color: colors.text, fontWeight: '700' }]}>{entry.clothNumber}</Text>
+                      <Text style={[s.tdCell, s.col3, { color: colors.text }]}>{entry.clothLength.toFixed(2)}m</Text>
+                      <Text style={[s.tdCell, s.col4, { color: colors.text }]}>{formatCurrency(entry.coloringCostPerUnit)}</Text>
+                      <Text style={[s.tdCell, s.col5, { color: colors.text }]}>{formatCurrency(entry.coloringTotal)}</Text>
+                      <Text style={[s.tdCell, s.col6, { color: colors.success, fontWeight: '700' }]}>{formatCurrency(entry.coloringTotal)}</Text>
+                    </View>
+                  ))}
 
                 {/* Total Row */}
-                <View style={[s.tableRow, s.totalRow, { backgroundColor: colors.primary + '10', borderTopColor: colors.primary }]}>
-                  <Text style={[s.totalCell, { color: colors.text, flex: 3 }]}>TOTAL</Text>
-                  <Text style={[s.totalCell, s.col3, { color: colors.text }]}>{totalLength.toFixed(2)}m</Text>
-                  <Text style={[s.totalCell, s.col4, { color: colors.text }]}></Text>
-                  <Text style={[s.totalCell, s.col5, { color: colors.text }]}></Text>
-                  <Text style={[s.totalCell, s.col6, { color: colors.primary, fontSize: 14 }]}>{formatCurrency(grandTotal)}</Text>
-                </View>
+                  <View style={[s.tableRow, s.totalRow, { backgroundColor: colors.primary + '10', borderTopColor: colors.primary }]}> 
+                    <Text style={[s.totalCell, { color: colors.text, flex: 3 }]}>TOTAL</Text>
+                    <Text style={[s.totalCell, s.col3, { color: colors.text }]}>{totalLength.toFixed(2)}m</Text>
+                    <Text style={[s.totalCell, s.col4, { color: colors.text }]}></Text>
+                    <Text style={[s.totalCell, s.col5, { color: colors.text }]}>{formatCurrency(totalColoring)}</Text>
+                    <Text style={[s.totalCell, s.col6, { color: colors.primary, fontSize: 14 }]}>{formatCurrency(totalColoring)}</Text>
+                  </View>
 
                 {/* Grand Total Banner */}
                 <View style={[s.grandTotalBanner, { backgroundColor: colors.primary }]}>

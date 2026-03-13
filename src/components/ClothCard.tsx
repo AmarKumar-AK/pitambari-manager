@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
-import { ClothEntry } from '../types';
-import { formatCurrency } from '../utils/calculations';
+import { ClothBatch } from '../types';
 import { formatDisplayDate } from '../utils/dateUtils';
+import { CUSTOMERS } from '../data/customers';
 
 interface ClothCardProps {
-  entry: ClothEntry;
+  batch: ClothBatch;
   onPress?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -21,7 +21,7 @@ interface ClothCardProps {
 }
 
 export default function ClothCard({
-  entry,
+  batch,
   onPress,
   onEdit,
   onDelete,
@@ -29,10 +29,16 @@ export default function ClothCard({
 }: ClothCardProps) {
   const { colors } = useTheme();
 
+  const customer = CUSTOMERS.find((c) => c.name === batch.customerName);
+  const shortForm = customer?.shortForm ?? batch.customerName;
+
+  const totalLength = batch.entries.reduce((s, e) => s + e.clothLength, 0);
+  const totalColoring = batch.entries.reduce((s, e) => s + e.coloringTotal, 0);
+
   const handleDelete = () => {
     Alert.alert(
-      'Delete Entry',
-      `Delete cloth entry for ${entry.customerName}?`,
+      'Delete Record',
+      `Delete this batch for ${shortForm}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete', style: 'destructive', onPress: onDelete },
@@ -46,16 +52,15 @@ export default function ClothCard({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      {/* Header Row */}
+      {/* Header Row: customer shortform + date + actions */}
       <View style={styles.header}>
-        <View style={[styles.clothBadge, { backgroundColor: colors.primary + '15' }]}>
-          <Text style={[styles.clothNumber, { color: colors.primary }]}>
-            #{entry.clothNumber}
-          </Text>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.shortForm, { color: colors.primary }]}>{shortForm}</Text>
+          <Text style={[styles.fullName, { color: colors.textMuted }]}>{batch.customerName}</Text>
         </View>
         <View style={styles.headerRight}>
           <Text style={[styles.date, { color: colors.textMuted }]}>
-            {formatDisplayDate(entry.receivedDate)}
+            {formatDisplayDate(batch.receivedDate)}
           </Text>
           {showActions && (
             <View style={styles.actions}>
@@ -70,46 +75,44 @@ export default function ClothCard({
         </View>
       </View>
 
-      {/* Customer Row */}
-      <View style={styles.row}>
-        <Ionicons name="person-outline" size={14} color={colors.textMuted} />
-        <Text style={[styles.customerName, { color: colors.text }]}>{entry.customerName}</Text>
-        {entry.sentBy ? (
-          <Text style={[styles.sentBy, { color: colors.textSecondary }]}>
-            {'  ·  via '}{entry.sentBy}
-          </Text>
-        ) : null}
+      {/* Cloth items list */}
+      <View style={[styles.itemsContainer, { borderTopColor: colors.border }]}>
+        {batch.entries.map((entry) => (
+          <View key={entry.id} style={styles.itemRow}>
+            <View style={[styles.clothBadge, { backgroundColor: colors.primary + '15' }]}>
+              <Text style={[styles.clothNumber, { color: colors.primary }]}>#{entry.clothNumber}</Text>
+            </View>
+            <Text style={[styles.itemLength, { color: colors.text }]}>
+              {entry.clothLength.toFixed(2)} चौका
+            </Text>
+          </View>
+        ))}
       </View>
 
-      {/* Stats Row */}
-      <View style={[styles.statsRow, { borderTopColor: colors.border }]}>
-        <View style={styles.stat}>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>Length</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {entry.clothLength.toFixed(2)} m
-          </Text>
+      {/* Footer: totals */}
+      <View style={[styles.footer, { borderTopColor: colors.border }]}>
+        <View style={styles.footerStat}>
+          <Text style={[styles.footerLabel, { color: colors.textMuted }]}>कुल लंबाई</Text>
+          <Text style={[styles.footerValue, { color: colors.text }]}>{totalLength.toFixed(2)} चौका</Text>
         </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>Cloth</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {formatCurrency(entry.clothTotal)}
-          </Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>Coloring</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {formatCurrency(entry.coloringTotal)}
-          </Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>Total</Text>
-          <Text style={[styles.totalValue, { color: colors.success }]}>
-            {formatCurrency(entry.totalCost)}
-          </Text>
-        </View>
+        {totalColoring > 0 && (
+          <>
+            <View style={[styles.footerDivider, { backgroundColor: colors.border }]} />
+            <View style={styles.footerStat}>
+              <Text style={[styles.footerLabel, { color: colors.textMuted }]}>रंगाई</Text>
+              <Text style={[styles.footerValue, { color: colors.success }]}>₹{totalColoring.toFixed(2)}</Text>
+            </View>
+          </>
+        )}
+        {batch.notes ? (
+          <>
+            <View style={[styles.footerDivider, { backgroundColor: colors.border }]} />
+            <View style={[styles.footerStat, { flex: 2 }]}>
+              <Text style={[styles.footerLabel, { color: colors.textMuted }]}>टिप्पणी</Text>
+              <Text style={[styles.notesText, { color: colors.textSecondary }]} numberOfLines={1}>{batch.notes}</Text>
+            </View>
+          </>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -129,23 +132,27 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  clothBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+  headerLeft: {
+    flexShrink: 1,
   },
-  clothNumber: {
-    fontSize: 13,
-    fontWeight: '700',
+  shortForm: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  fullName: {
+    fontSize: 12,
+    marginTop: 1,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    flexShrink: 0,
+    marginLeft: 8,
   },
   date: {
     fontSize: 12,
@@ -157,47 +164,59 @@ const styles = StyleSheet.create({
   actionBtn: {
     padding: 4,
   },
-  row: {
+  itemsContainer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 8,
+    gap: 6,
+  },
+  itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginBottom: 10,
+    gap: 10,
   },
-  customerName: {
+  clothBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  clothNumber: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  itemLength: {
     fontSize: 15,
     fontWeight: '600',
   },
-  sentBy: {
-    fontSize: 13,
-  },
-  statsRow: {
+  footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 10,
+    paddingTop: 10,
   },
-  stat: {
+  footerStat: {
     flex: 1,
     alignItems: 'center',
   },
-  statDivider: {
-    width: StyleSheet.hairlineWidth,
-    height: 28,
-    backgroundColor: '#CBD5E1',
-  },
-  statLabel: {
+  footerLabel: {
     fontSize: 10,
     fontWeight: '500',
-    marginBottom: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
+    marginBottom: 2,
   },
-  statValue: {
-    fontSize: 12,
+  footerValue: {
+    fontSize: 14,
     fontWeight: '700',
   },
-  totalValue: {
-    fontSize: 13,
-    fontWeight: '800',
+  footerDivider: {
+    width: StyleSheet.hairlineWidth,
+    height: 28,
+  },
+  notesText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

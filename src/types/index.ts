@@ -11,11 +11,22 @@ export interface ClothEntry {
   coloringTotal: number;
   totalCost: number;
   notes: string;
+  batchId: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export type NewClothEntry = Omit<ClothEntry, 'id' | 'createdAt' | 'updatedAt'>;
+
+/** A batch represents one "submission" — multiple cloth items sent at the same time by a customer. */
+export interface ClothBatch {
+  batchId: string;
+  customerName: string;
+  receivedDate: string;
+  coloringCostPerUnit: number;
+  notes: string;
+  entries: ClothEntry[];
+}
 
 export interface Customer {
   name: string;

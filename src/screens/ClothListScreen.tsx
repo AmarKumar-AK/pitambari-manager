@@ -18,7 +18,7 @@ import { useClothQueries } from '../database/queries';
 import ClothCard from '../components/ClothCard';
 import SearchBar from '../components/SearchBar';
 import EmptyState from '../components/EmptyState';
-import { ClothEntry } from '../types';
+import { ClothBatch } from '../types';
 import { formatDisplayDate, toDBDate } from '../utils/dateUtils';
 import { parseISO } from 'date-fns';
 
@@ -26,7 +26,7 @@ export default function ClothListScreen({ navigation }: any) {
   const { colors } = useTheme();
   const queries = useClothQueries();
 
-  const [entries, setEntries] = useState<ClothEntry[]>([]);
+  const [entries, setEntries] = useState<ClothBatch[]>([]);
   const [search, setSearch] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [showDateFilter, setShowDateFilter] = useState(false);
@@ -36,7 +36,7 @@ export default function ClothListScreen({ navigation }: any) {
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await queries.getAllEntries(search || undefined, filterDate || undefined);
+      const data = await queries.getAllBatches(search || undefined, filterDate || undefined);
       setEntries(data);
     } catch (err) {
       console.error('ClothList error:', err);
@@ -51,12 +51,14 @@ export default function ClothListScreen({ navigation }: any) {
     }, [loadEntries])
   );
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (batchId: string) => {
     try {
-      await queries.deleteClothEntry(id);
-      setEntries((prev) => prev.filter((e) => e.id !== id));
-    } catch (err) {
-      Alert.alert('Error', 'Could not delete entry.');
+      console.log('Deleting batchId:', batchId);
+      await queries.deleteClothBatch(batchId);
+      setEntries((prev) => prev.filter((b) => b.batchId !== batchId));
+    } catch (error) {
+      console.error('Delete error:', error);
+      Alert.alert('Delete failed', error?.message || String(error));
     }
   };
 
@@ -131,22 +133,28 @@ export default function ClothListScreen({ navigation }: any) {
           <Text style={[s.statsText, { color: colors.textMuted }]}>
             {entries.length} record{entries.length !== 1 ? 's' : ''}
             {'  ·  '}
-            {entries.reduce((s, e) => s + e.clothLength, 0).toFixed(2)} m total
+            {entries
+              .flatMap((b) => b.entries)
+              .reduce((sum, e) => sum + e.clothLength, 0)
+              .toFixed(2)} चौका total
           </Text>
         </View>
       )}
 
       {/* ── List ── */}
       <FlatList
-        data={entries}
-        keyExtractor={(item) => item.id.toString()}
+        data={entries.map(batch => ({
+          ...batch,
+          entries: [...batch.entries].sort((a, b) => a.clothNumber.localeCompare(b.clothNumber, undefined, { numeric: true }))
+        }))}
+        keyExtractor={(item) => item.batchId}
         contentContainerStyle={s.listContent}
         renderItem={({ item }) => (
           <ClothCard
-            entry={item}
-            onPress={() => navigation.navigate('EditEntry', { entryId: item.id })}
-            onEdit={() => navigation.navigate('EditEntry', { entryId: item.id })}
-            onDelete={() => handleDelete(item.id)}
+            batch={item}
+            onPress={() => navigation.navigate('EditEntry', { batchId: item.batchId })}
+            onEdit={() => navigation.navigate('EditEntry', { batchId: item.batchId })}
+            onDelete={() => handleDelete(item.batchId)}
             showActions
           />
         )}

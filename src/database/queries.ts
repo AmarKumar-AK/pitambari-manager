@@ -1,5 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
-import { ClothEntry, Customer, DashboardStats, MonthlyReport, NewClothEntry } from '../types';
+import { ClothBatch, ClothEntry, Customer, DashboardStats, MonthlyReport, NewClothEntry } from '../types';
 import { format } from 'date-fns';
 
 // Raw DB row types (snake_case)
@@ -16,9 +16,13 @@ type RawClothEntry = {
   coloring_total: number;
   total_cost: number;
   notes: string;
+  batch_id: string;   // always a string after COALESCE
   created_at: string;
   updated_at: string;
 };
+
+// Explicit column list used in every SELECT to avoid NULL-column NPE on Android
+const SELECT_COLS = "id, cloth_number, customer_name, COALESCE(sent_by,'') AS sent_by, received_date, cloth_length, cloth_cost_per_unit, coloring_cost_per_unit, cloth_total, coloring_total, total_cost, COALESCE(notes,'') AS notes, COALESCE(batch_id,'') AS batch_id, created_at, updated_at";
 
 type RawCustomer = {
   name: string;
@@ -42,9 +46,41 @@ function mapEntry(raw: RawClothEntry): ClothEntry {
     coloringTotal: raw.coloring_total,
     totalCost: raw.total_cost,
     notes: raw.notes ?? '',
+    batchId: raw.batch_id ?? '',
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   };
+}
+
+/**
+ * Groups a flat list of ClothEntry rows into ClothBatch objects.
+ * Entries without a batchId each form their own single-item batch.
+ */
+function groupIntoBatches(entries: ClothEntry[]): ClothBatch[] {
+  const order: string[] = [];
+  const map = new Map<string, ClothEntry[]>();
+
+  for (const entry of entries) {
+    const key = entry.batchId || `_entry_${entry.id}`;
+    if (!map.has(key)) {
+      map.set(key, []);
+      order.push(key);
+    }
+    map.get(key)!.push(entry);
+  }
+
+  return order.map((key) => {
+    const items = map.get(key)!;
+    const first = items[0];
+    return {
+      batchId: key,
+      customerName: first.customerName,
+      receivedDate: first.receivedDate,
+      coloringCostPerUnit: first.coloringCostPerUnit,
+      notes: first.notes,
+      entries: items,
+    };
+  });
 }
 
 export function useClothQueries() {
@@ -57,8 +93,8 @@ export function useClothQueries() {
       `INSERT INTO cloth_entries
          (cloth_number, customer_name, sent_by, received_date,
           cloth_length, cloth_cost_per_unit, coloring_cost_per_unit,
-          cloth_total, coloring_total, total_cost, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          cloth_total, coloring_total, total_cost, notes, batch_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         entry.clothNumber,
         entry.customerName.trim(),
@@ -71,6 +107,7 @@ export function useClothQueries() {
         entry.coloringTotal,
         entry.totalCost,
         entry.notes.trim(),
+        entry.batchId || '',
       ]
     );
     // Ensure customer exists in customers table
@@ -119,11 +156,25 @@ export function useClothQueries() {
     await db.runAsync('DELETE FROM cloth_entries WHERE id = ?', [id]);
   };
 
+  const deleteClothBatch = async (batchId: string): Promise<void> => {
+    if (!batchId) {
+      console.warn('deleteClothBatch called with empty batchId');
+      return;
+    }
+    if (batchId.startsWith('_entry_')) {
+      // Legacy entry with no real batch_id — delete by individual id
+      const id = parseInt(batchId.replace('_entry_', ''), 10);
+      await db.runAsync('DELETE FROM cloth_entries WHERE id = ?', [id]);
+    } else {
+      await db.runAsync('DELETE FROM cloth_entries WHERE batch_id = ?', [batchId]);
+    }
+  };
+
   // ── READ ─────────────────────────────────────────────────────────────────────
 
   const getEntryById = async (id: number): Promise<ClothEntry | null> => {
     const row = await db.getFirstAsync<RawClothEntry>(
-      'SELECT * FROM cloth_entries WHERE id = ?',
+      `SELECT ${SELECT_COLS} FROM cloth_entries WHERE id = ?`,
       [id]
     );
     return row ? mapEntry(row) : null;
@@ -133,7 +184,7 @@ export function useClothQueries() {
     search?: string,
     filterDate?: string
   ): Promise<ClothEntry[]> => {
-    let query = 'SELECT * FROM cloth_entries WHERE 1=1';
+    let query = `SELECT ${SELECT_COLS} FROM cloth_entries WHERE 1=1`;
     const params: (string | number)[] = [];
 
     if (search && search.trim()) {
@@ -153,15 +204,26 @@ export function useClothQueries() {
 
   const getRecentEntries = async (limit = 5): Promise<ClothEntry[]> => {
     const rows = await db.getAllAsync<RawClothEntry>(
-      `SELECT * FROM cloth_entries ORDER BY received_date DESC, id DESC LIMIT ?`,
+      `SELECT ${SELECT_COLS} FROM cloth_entries ORDER BY received_date DESC, id DESC LIMIT ?`,
       [limit]
     );
     return rows.map(mapEntry);
   };
 
-  const getEntriesByCustomer = async (customerName: string): Promise<ClothEntry[]> => {
+  const getRecentBatches = async (limit = 5): Promise<ClothBatch[]> => {
+    // Fetch more rows than needed so we can group them, then trim to limit batches
     const rows = await db.getAllAsync<RawClothEntry>(
-      `SELECT * FROM cloth_entries
+      `SELECT ${SELECT_COLS} FROM cloth_entries ORDER BY received_date DESC, id DESC LIMIT ?`,
+      [limit * 10]
+    );
+    const batches = groupIntoBatches(rows.map(mapEntry));
+    return batches.slice(0, limit);
+  };
+
+  const getEntriesByCustomer = async (customerName: string): Promise<ClothEntry[]> => {
+    if (!customerName) return [];
+    const rows = await db.getAllAsync<RawClothEntry>(
+      `SELECT ${SELECT_COLS} FROM cloth_entries
        WHERE customer_name = ?
        ORDER BY received_date DESC, id DESC`,
       [customerName]
@@ -169,12 +231,41 @@ export function useClothQueries() {
     return rows.map(mapEntry);
   };
 
+  const getBatchesByCustomer = async (customerName: string): Promise<ClothBatch[]> => {
+    const entries = await getEntriesByCustomer(customerName);
+    return groupIntoBatches(entries);
+  };
+
+  const getBatchEntries = async (batchId: string): Promise<ClothEntry[]> => {
+    if (batchId.startsWith('_entry_')) {
+      const id = parseInt(batchId.replace('_entry_', ''), 10);
+      const row = await db.getFirstAsync<RawClothEntry>(
+        `SELECT ${SELECT_COLS} FROM cloth_entries WHERE id = ?`, [id]
+      );
+      return row ? [mapEntry(row)] : [];
+    }
+    const rows = await db.getAllAsync<RawClothEntry>(
+      `SELECT ${SELECT_COLS} FROM cloth_entries WHERE batch_id = ? ORDER BY id ASC`,
+      [batchId]
+    );
+    return rows.map(mapEntry);
+  };
+
+  const getAllBatches = async (
+    search?: string,
+    filterDate?: string
+  ): Promise<ClothBatch[]> => {
+    const entries = await getAllEntries(search, filterDate);
+    return groupIntoBatches(entries);
+  };
+
   const getEntriesByCustomerAndDate = async (
     customerName: string,
     date: string
   ): Promise<ClothEntry[]> => {
+    if (!customerName || !date) return [];
     const rows = await db.getAllAsync<RawClothEntry>(
-      `SELECT * FROM cloth_entries
+      `SELECT ${SELECT_COLS} FROM cloth_entries
        WHERE customer_name = ? AND received_date = ?
        ORDER BY id ASC`,
       [customerName, date]
@@ -312,7 +403,7 @@ export function useClothQueries() {
 
   const getAllData = async (): Promise<ClothEntry[]> => {
     const rows = await db.getAllAsync<RawClothEntry>(
-      'SELECT * FROM cloth_entries ORDER BY received_date DESC, id DESC'
+      `SELECT ${SELECT_COLS} FROM cloth_entries ORDER BY received_date DESC, id DESC`
     );
     return rows.map(mapEntry);
   };
@@ -352,10 +443,15 @@ export function useClothQueries() {
     addClothEntry,
     updateClothEntry,
     deleteClothEntry,
+    deleteClothBatch,
     getEntryById,
     getAllEntries,
+    getAllBatches,
     getRecentEntries,
+    getRecentBatches,
     getEntriesByCustomer,
+    getBatchesByCustomer,
+    getBatchEntries,
     getEntriesByCustomerAndDate,
     getDashboardStats,
     getAllCustomers,

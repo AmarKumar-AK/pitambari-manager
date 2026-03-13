@@ -13,7 +13,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useClothQueries } from '../database/queries';
 import ClothCard from '../components/ClothCard';
 import EmptyState from '../components/EmptyState';
-import { ClothEntry } from '../types';
+import { ClothBatch } from '../types';
 import { formatCurrency } from '../utils/calculations';
 import { formatDisplayDate } from '../utils/dateUtils';
 
@@ -22,19 +22,19 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
   const { colors } = useTheme();
   const queries = useClothQueries();
 
-  const [entries, setEntries] = useState<ClothEntry[]>([]);
+  const [entries, setEntries] = useState<ClothBatch[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const totalLength = entries.reduce((s, e) => s + e.clothLength, 0);
-  const totalCloth = entries.reduce((s, e) => s + e.clothTotal, 0);
-  const totalColoring = entries.reduce((s, e) => s + e.coloringTotal, 0);
-  const grandTotal = entries.reduce((s, e) => s + e.totalCost, 0);
+  const allClothEntries = entries.flatMap((b) => b.entries);
+  const totalLength = allClothEntries.reduce((s, e) => s + e.clothLength, 0);
+  const totalColoring = allClothEntries.reduce((s, e) => s + e.coloringTotal, 0);
+  const grandTotal = allClothEntries.reduce((s, e) => s + e.totalCost, 0);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const data = await queries.getEntriesByCustomer(customerName);
+        const data = await queries.getBatchesByCustomer(customerName);
         setEntries(data);
       } catch (err) {
         console.error('CustomerLedger error:', err);
@@ -44,9 +44,15 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
     })();
   }, [customerName]);
 
-  const handleDelete = async (id: number) => {
-    await queries.deleteClothEntry(id);
-    setEntries((prev) => prev.filter((e) => e.id !== id));
+  const handleDelete = async (batchId: string) => {
+    try {
+      console.log('Deleting batchId:', batchId);
+      await queries.deleteClothBatch(batchId);
+      setEntries((prev) => prev.filter((entry) => entry.batchId !== batchId));
+    } catch (error) {
+      console.error('Delete error:', error);
+      Alert.alert('Delete failed', error?.message || String(error));
+    }
   };
 
   const s = createStyles(colors);
@@ -56,22 +62,17 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
       {/* Summary card */}
       <View style={[s.summaryCard, { backgroundColor: colors.primary }]}>
         <Text style={s.summaryName}>{customerName}</Text>
-        <Text style={s.summarySubtitle}>{entries.length} cloth entries</Text>
+        <Text style={s.summarySubtitle}>{entries.length} record{entries.length !== 1 ? 's' : ''}</Text>
 
-        <View style={s.summaryStats}>
+          <View style={s.summaryStats}>
           <View style={s.summaryStat}>
-            <Text style={s.summaryStatValue}>{totalLength.toFixed(2)} m</Text>
-            <Text style={s.summaryStatLabel}>Total Length</Text>
-          </View>
-          <View style={s.summaryStatDivider} />
-          <View style={s.summaryStat}>
-            <Text style={s.summaryStatValue}>{formatCurrency(totalCloth)}</Text>
-            <Text style={s.summaryStatLabel}>Cloth Cost</Text>
+            <Text style={s.summaryStatValue}>{totalLength.toFixed(2)} चौका</Text>
+            <Text style={s.summaryStatLabel}>कुल लंबाई</Text>
           </View>
           <View style={s.summaryStatDivider} />
           <View style={s.summaryStat}>
             <Text style={s.summaryStatValue}>{formatCurrency(totalColoring)}</Text>
-            <Text style={s.summaryStatLabel}>Coloring</Text>
+            <Text style={s.summaryStatLabel}>रंगाई</Text>
           </View>
         </View>
 
@@ -107,14 +108,14 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
     <SafeAreaView style={[s.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
       <FlatList
         data={entries}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.batchId}
         contentContainerStyle={s.listContent}
         renderItem={({ item }) => (
           <ClothCard
-            entry={item}
-            onPress={() => navigation.navigate('EditEntry', { entryId: item.id })}
-            onEdit={() => navigation.navigate('EditEntry', { entryId: item.id })}
-            onDelete={() => handleDelete(item.id)}
+            batch={item}
+            onPress={() => navigation.navigate('EditEntry', { batchId: item.batchId })}
+            onEdit={() => navigation.navigate('EditEntry', { batchId: item.batchId })}
+            onDelete={() => handleDelete(item.batchId)}
             showActions
           />
         )}

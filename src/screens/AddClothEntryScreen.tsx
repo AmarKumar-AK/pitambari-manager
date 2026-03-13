@@ -47,6 +47,8 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
   const { colors } = useTheme();
   const queries = useClothQueries();
   const isEdit = route.name === 'EditEntry';
+  const batchId: string | undefined = route.params?.batchId;
+  // Legacy support: entryId param still works for old-style single entries
   const entryId: number | undefined = route.params?.entryId;
 
   const [form, setForm] = useState<FormState>({
@@ -56,17 +58,40 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
   });
 
   const [clothRows, setClothRows] = useState<ClothRow[]>([newRow()]);
-  const [loading, setLoading] = useState(isEdit);
+  const [loading, setLoading] = useState(isEdit && !!(batchId || entryId));
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [pickerRowId, setPickerRowId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isEdit && entryId) {
-      queries
-        .getEntryById(entryId)
-        .then((entry) => {
+    if (!isEdit) return;
+
+    const loadData = async () => {
+      // Read params at effect-time (defensive against stale closure)
+      const bid: string | undefined = route.params?.batchId;
+      const eid: number | undefined = route.params?.entryId;
+
+      try {
+        if (bid) {
+          const batchEntries = await queries.getBatchEntries(bid);
+          if (batchEntries.length > 0) {
+            const first = batchEntries[0];
+            setForm({
+              customerName: first.customerName,
+              receivedDate: first.receivedDate,
+              notes: first.notes,
+            });
+            setClothRows(
+              batchEntries.map((e) => ({
+                id: String(++rowCounter),
+                clothNumber: e.clothNumber,
+                clothLength: e.clothLength.toString(),
+              }))
+            );
+          }
+        } else if (eid) {
+          const entry = await queries.getEntryById(eid);
           if (entry) {
             setForm({
               customerName: entry.customerName,
@@ -77,9 +102,15 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
               { id: String(++rowCounter), clothNumber: entry.clothNumber, clothLength: entry.clothLength.toString() },
             ]);
           }
-        })
-        .finally(() => setLoading(false));
-    }
+        }
+      } catch (err) {
+        console.error('EditEntry load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const updateField = (field: keyof FormState, value: string) =>
@@ -114,31 +145,24 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
       return;
     }
 
+    // Find selected customer object
+    const customer = CUSTOMERS.find((c) => c.name === form.customerName.trim());
     setSaving(true);
     try {
-      if (isEdit && entryId) {
-        const row = clothRows[0];
-        const len = parseDecimal(row.clothLength);
-        const original = await queries.getEntryById(entryId);
-        await queries.updateClothEntry({
-          id: entryId,
-          clothNumber: row.clothNumber,
-          customerName: form.customerName.trim(),
-          sentBy: '',
-          receivedDate: form.receivedDate,
-          clothLength: len,
-          clothCostPerUnit: 0,
-          coloringCostPerUnit: 0,
-          clothTotal: 0,
-          coloringTotal: 0,
-          totalCost: 0,
-          notes: form.notes.trim(),
-          createdAt: original?.createdAt ?? '',
-          updatedAt: '',
-        });
-      } else {
+      if (isEdit && (batchId || entryId)) {
+        // Delete existing batch entries and re-insert with updated data
+        const existingBatchId = batchId || `_entry_${entryId}`;
+        await queries.deleteClothBatch(existingBatchId);
+        const newBatchId = `batch_${Date.now()}`;
         for (const row of validRows) {
           const len = parseDecimal(row.clothLength);
+          // Get coloring cost from customer rates
+          let coloringCostPerUnit = 0;
+          if (customer && customer.rates[row.clothNumber]) {
+            coloringCostPerUnit = customer.rates[row.clothNumber].coloringCostPerUnit;
+          }
+          // Calculate totals
+          const { clothTotal, coloringTotal, totalCost } = require('../utils/calculations').calculateTotals(len, 0, coloringCostPerUnit);
           await queries.addClothEntry({
             clothNumber: row.clothNumber,
             customerName: form.customerName.trim(),
@@ -146,11 +170,38 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             receivedDate: form.receivedDate,
             clothLength: len,
             clothCostPerUnit: 0,
-            coloringCostPerUnit: 0,
-            clothTotal: 0,
-            coloringTotal: 0,
-            totalCost: 0,
+            coloringCostPerUnit,
+            clothTotal,
+            coloringTotal,
+            totalCost,
             notes: form.notes.trim(),
+            batchId: newBatchId,
+          });
+        }
+      } else {
+        const newBatchId = `batch_${Date.now()}`;
+        for (const row of validRows) {
+          const len = parseDecimal(row.clothLength);
+          // Get coloring cost from customer rates
+          let coloringCostPerUnit = 0;
+          if (customer && customer.rates[row.clothNumber]) {
+            coloringCostPerUnit = customer.rates[row.clothNumber].coloringCostPerUnit;
+          }
+          // Calculate totals
+          const { clothTotal, coloringTotal, totalCost } = require('../utils/calculations').calculateTotals(len, 0, coloringCostPerUnit);
+          await queries.addClothEntry({
+            clothNumber: row.clothNumber,
+            customerName: form.customerName.trim(),
+            sentBy: '',
+            receivedDate: form.receivedDate,
+            clothLength: len,
+            clothCostPerUnit: 0,
+            coloringCostPerUnit,
+            clothTotal,
+            coloringTotal,
+            totalCost,
+            notes: form.notes.trim(),
+            batchId: newBatchId,
           });
         }
       }
@@ -333,7 +384,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             </View>
             {clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length > 1 && (
               <Text style={[s.summaryNote, { color: colors.textMuted }]}>
-                {clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length} items will be saved as separate entries
+                {clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length} items will be saved as one record
               </Text>
             )}
           </View>

@@ -5,19 +5,17 @@ import { formatDisplayDate } from './dateUtils';
 
 function buildBillHTML(bill: BillData): string {
   const rows = bill.entries
-    .map(
-      (entry, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td style="text-align:center;font-weight:700">${entry.clothNumber}</td>
-          <td style="text-align:right">${entry.clothLength.toFixed(2)} m</td>
-          <td style="text-align:right">₹${entry.clothCostPerUnit.toFixed(2)}</td>
-          <td style="text-align:right">₹${entry.coloringCostPerUnit.toFixed(2)}</td>
-          <td style="text-align:right">₹${entry.clothTotal.toFixed(2)}</td>
-          <td style="text-align:right">₹${entry.coloringTotal.toFixed(2)}</td>
-          <td style="text-align:right;font-weight:700;color:#4F46E5">₹${entry.totalCost.toFixed(2)}</td>
-        </tr>`
-    )
+      .map(
+        (entry, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td style="text-align:center;font-weight:700">${entry.clothNumber}</td>
+            <td style="text-align:right">${entry.clothLength.toFixed(2)} m</td>
+            <td style="text-align:right">₹${entry.coloringCostPerUnit.toFixed(2)}</td>
+            <td style="text-align:right">₹${entry.coloringTotal.toFixed(2)}</td>
+            <td style="text-align:right;font-weight:700;color:#4F46E5">₹${entry.coloringTotal.toFixed(2)}</td>
+          </tr>`
+      )
     .join('');
 
   return `<!DOCTYPE html>
@@ -131,9 +129,7 @@ function buildBillHTML(bill: BillData): string {
         <th>#</th>
         <th style="text-align:center">Cloth No.</th>
         <th style="text-align:right">Length (m)</th>
-        <th style="text-align:right">Cloth Rate</th>
         <th style="text-align:right">Color Rate</th>
-        <th style="text-align:right">Cloth Amount</th>
         <th style="text-align:right">Color Amount</th>
         <th style="text-align:right">Total</th>
       </tr>

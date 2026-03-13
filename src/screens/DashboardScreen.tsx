@@ -14,7 +14,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useClothQueries } from '../database/queries';
 import StatsCard from '../components/StatsCard';
 import ClothCard from '../components/ClothCard';
-import { DashboardStats, ClothEntry } from '../types';
+import { DashboardStats, ClothBatch } from '../types';
 import { formatCurrency } from '../utils/calculations';
 import { formatDisplayDate, todayDB } from '../utils/dateUtils';
 
@@ -29,14 +29,14 @@ export default function DashboardScreen({ navigation }: any) {
     totalEarnings: 0,
     totalEntries: 0,
   });
-  const [recentEntries, setRecentEntries] = useState<ClothEntry[]>([]);
+  const [recentEntries, setRecentEntries] = useState<ClothBatch[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
       const [dashStats, recent] = await Promise.all([
         queries.getDashboardStats(),
-        queries.getRecentEntries(5),
+        queries.getRecentBatches(5),
       ]);
       setStats(dashStats);
       setRecentEntries(recent);
@@ -163,12 +163,12 @@ export default function DashboardScreen({ navigation }: any) {
               </Text>
             </View>
           ) : (
-            recentEntries.map((entry) => (
+            recentEntries.map((batch) => (
               <ClothCard
-                key={entry.id}
-                entry={entry}
-                onPress={() => navigation.navigate('EditEntry', { entryId: entry.id })}
-                onEdit={() => navigation.navigate('EditEntry', { entryId: entry.id })}
+                key={batch.batchId}
+                batch={batch}
+                onPress={() => navigation.navigate('EditEntry', { batchId: batch.batchId })}
+                onEdit={() => navigation.navigate('EditEntry', { batchId: batch.batchId })}
                 showActions
               />
             ))

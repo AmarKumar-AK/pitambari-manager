@@ -273,6 +273,21 @@ export function useClothQueries() {
     return rows.map(mapEntry);
   };
 
+  const getEntriesByCustomerAndDateRange = async (
+    customerName: string,
+    startDate: string,
+    endDate: string
+  ): Promise<ClothEntry[]> => {
+    if (!customerName || !startDate || !endDate) return [];
+    const rows = await db.getAllAsync<RawClothEntry>(
+      `SELECT ${SELECT_COLS} FROM cloth_entries
+       WHERE customer_name = ? AND received_date >= ? AND received_date <= ?
+       ORDER BY id ASC`,
+      [customerName, startDate, endDate]
+    );
+    return rows.map(mapEntry);
+  };
+
   // ── STATS ─────────────────────────────────────────────────────────────────────
 
   const getDashboardStats = async (): Promise<DashboardStats> => {
@@ -453,6 +468,7 @@ export function useClothQueries() {
     getBatchesByCustomer,
     getBatchEntries,
     getEntriesByCustomerAndDate,
+    getEntriesByCustomerAndDateRange,
     getDashboardStats,
     getAllCustomers,
     searchCustomerNames,

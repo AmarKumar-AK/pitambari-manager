@@ -21,6 +21,7 @@ import EmptyState from '../components/EmptyState';
 import { ClothBatch } from '../types';
 import { formatDisplayDate, toDBDate } from '../utils/dateUtils';
 import { parseISO } from 'date-fns';
+import { CUSTOMERS } from '../data/customers';
 
 export default function ClothListScreen({ navigation }: any) {
   const { colors } = useTheme();
@@ -36,7 +37,12 @@ export default function ClothListScreen({ navigation }: any) {
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await queries.getAllBatches(search || undefined, filterDate || undefined);
+      let data = await queries.getAllBatches(undefined, filterDate || undefined);
+      if (search && search.trim()) {
+        // Find customer names whose shortForm matches the search
+        const matchingNames = CUSTOMERS.filter(c => c.shortForm.toLowerCase().includes(search.trim().toLowerCase())).map(c => c.name);
+        data = data.filter(batch => matchingNames.includes(batch.customerName));
+      }
       setEntries(data);
     } catch (err) {
       console.error('ClothList error:', err);
@@ -90,7 +96,7 @@ export default function ClothListScreen({ navigation }: any) {
           <SearchBar
             value={search}
             onChangeText={(v) => setSearch(v)}
-            placeholder="Search by customer or cloth no."
+            placeholder="Search by customer short form"
           />
         </View>
         <TouchableOpacity

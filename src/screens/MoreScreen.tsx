@@ -48,7 +48,7 @@ export default function MoreScreen({ navigation }: any) {
 
         <MenuItem
           icon="receipt-outline"
-          label="Generate Bill"
+          label="बिल बनाएं"
           sublabel="Create and export a customer bill as PDF"
           color={colors.secondary}
           onPress={() => navigation.navigate('Bill')}

@@ -1,6 +1,6 @@
 export const CLOTH_NUMBERS = ['000', '00', '0', '1', '2', '3', '4'];
 
-export const APP_NAME = 'Kapda Manager';
+export const APP_NAME = 'गुड्डू पप्पु';
 export const DB_NAME = 'pms.db';
 
 export const COLORS = {

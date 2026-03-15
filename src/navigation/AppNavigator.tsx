@@ -134,7 +134,7 @@ export default function AppNavigator() {
       <Root.Screen
         name="Bill"
         component={BillScreen}
-        options={{ title: 'Generate Bill', ...headerOptions }}
+        options={{ title: 'बिल बनाएं', ...headerOptions }}
       />
 
       <Root.Screen

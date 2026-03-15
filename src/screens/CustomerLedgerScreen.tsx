@@ -89,14 +89,14 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
           onPress={() => navigation.navigate('Bill', { customerName })}
         >
           <Ionicons name="receipt-outline" size={18} color="#fff" />
-          <Text style={s.actionBtnText}>Generate Bill</Text>
+          <Text style={s.actionBtnText}>बिल बनाएं</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[s.actionBtn, { backgroundColor: colors.primary }]}
           onPress={() => navigation.navigate('AddEntry', { mode: 'add' })}
         >
           <Ionicons name="add-circle-outline" size={18} color="#fff" />
-          <Text style={s.actionBtnText}>Add Entry</Text>
+          <Text style={s.actionBtnText}>नया माल</Text>
         </TouchableOpacity>
       </View>
 

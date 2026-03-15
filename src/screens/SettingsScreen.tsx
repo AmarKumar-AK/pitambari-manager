@@ -113,7 +113,7 @@ export default function SettingsScreen() {
           <Row
             icon="information-circle-outline"
             iconColor={colors.info}
-            label="Kapda Manager"
+            label="गुड्डू पप्पु"
             sublabel="Version 1.0.0"
             right={<View />}
           />

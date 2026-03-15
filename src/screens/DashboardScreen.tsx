@@ -70,7 +70,11 @@ export default function DashboardScreen({ navigation }: any) {
         {/* ── Header ── */}
         <View style={s.headerRow}>
           <View>
-            <Text style={[s.appName, { color: colors.primary }]}>🧵 Kapda Manager</Text>
+            <Text
+              style={[s.appName, { color: colors.primary }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >🧵 गुड्डू पप्पु रंगाई</Text>
             <Text style={[s.subDate, { color: colors.textMuted }]}>
               {formatDisplayDate(todayDB())}
             </Text>
@@ -134,14 +138,14 @@ export default function DashboardScreen({ navigation }: any) {
             onPress={() => navigation.navigate('AddEntry', { mode: 'add' })}
           >
             <Ionicons name="add-circle-outline" size={20} color="#fff" />
-            <Text style={s.actionBtnText}>Add Entry</Text>
+            <Text style={s.actionBtnText}>नया माल</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[s.actionBtn, { backgroundColor: colors.secondary }]}
             onPress={() => navigation.navigate('Bill')}
           >
             <Ionicons name="receipt-outline" size={20} color="#fff" />
-            <Text style={s.actionBtnText}>Generate Bill</Text>
+            <Text style={s.actionBtnText}>बिल बनाएं</Text>
           </TouchableOpacity>
         </View>
 
@@ -159,7 +163,7 @@ export default function DashboardScreen({ navigation }: any) {
               <Ionicons name="layers-outline" size={36} color={colors.textMuted} />
               <Text style={[s.emptyText, { color: colors.textSecondary }]}>No entries yet</Text>
               <Text style={[s.emptyHint, { color: colors.textMuted }]}>
-                Tap "Add Entry" to record your first cloth entry
+                Tap "नया माल" to record your first cloth entry
               </Text>
             </View>
           ) : (
@@ -193,7 +197,7 @@ function createStyles(colors: any) {
       marginBottom: 16,
     },
     appName: {
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: '800',
       letterSpacing: -0.5,
     },

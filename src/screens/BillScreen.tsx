@@ -201,7 +201,7 @@ export default function BillScreen({ navigation, route }: any) {
         {searched && (
           <View style={[s.billCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={s.billHeader}>
-              <Text style={[s.billTitle, { color: colors.primary }]}>🧵 गुड्डू पप्पु</Text>
+              <Text style={[s.billTitle, { color: colors.primary }]}>🧵 गुड्डू पप्पु रंगाई</Text>
               <Text style={[s.billSubtitle, { color: colors.textSecondary }]}>पितांबरी रंगाई बिल</Text>
             </View>
 

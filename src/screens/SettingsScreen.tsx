@@ -113,7 +113,7 @@ export default function SettingsScreen() {
           <Row
             icon="information-circle-outline"
             iconColor={colors.info}
-            label="गुड्डू पप्पु"
+            label="गुड्डू पप्पु रंगाई"
             sublabel="वर्षन 1.0.0"
             right={<View />}
           />

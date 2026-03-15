@@ -30,13 +30,15 @@ export default function BillScreen({ navigation, route }: any) {
   const prefilledDate: string = route.params?.receivedDate ?? todayDB();
 
   const [customerName, setCustomerName] = useState(prefilledCustomer);
-  const [receivedDate, setReceivedDate] = useState(prefilledDate);
+  const [startDate, setStartDate] = useState(prefilledDate);
+  const [endDate, setEndDate] = useState(prefilledDate);
   const [customerNames, setCustomerNames] = useState<string[]>([]);
   const [uniqueDates, setUniqueDates] = useState<string[]>([]);
   const [billEntries, setBillEntries] = useState<ClothEntry[]>([]);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -51,10 +53,15 @@ export default function BillScreen({ navigation, route }: any) {
   }, [customerName]);
 
   const fetchBill = async () => {
-    if (!customerName || !receivedDate) return;
-    const data = await queries.getEntriesByCustomerAndDate(customerName, receivedDate);
-    // Sort by clothNumber (as string, or use localeCompare for string sort)
+    if (!customerName || !startDate || !endDate) return;
+    if (endDate < startDate) {
+      Alert.alert('Invalid Range', 'End date cannot be before start date.');
+      return;
+    }
+    const data = await queries.getEntriesByCustomerAndDateRange(customerName, startDate, endDate);
     data.sort((a, b) => a.clothNumber.localeCompare(b.clothNumber, undefined, { numeric: true }));
+    const distinctDates = [...new Set(data.map(e => e.receivedDate))].sort();
+    console.log('Bill entries loaded:', data.length, 'entries,', distinctDates.length, 'distinct dates:', distinctDates);
     setBillEntries(data);
     setSearched(true);
   };
@@ -65,9 +72,27 @@ export default function BillScreen({ navigation, route }: any) {
 
   // Always sort billEntries before generating bill
   const sortedBillEntries = [...billEntries].sort((a, b) => a.clothNumber.localeCompare(b.clothNumber, undefined, { numeric: true }));
+
+  // Group entries by date for per-date sections
+  const billByDate = (() => {
+    const dateMap = new Map<string, ClothEntry[]>();
+    for (const e of billEntries) {
+      if (!dateMap.has(e.receivedDate)) dateMap.set(e.receivedDate, []);
+      dateMap.get(e.receivedDate)!.push(e);
+    }
+    return [...dateMap.keys()].sort().map(date => ({
+      date,
+      entries: [...dateMap.get(date)!].sort((a, b) => a.clothNumber.localeCompare(b.clothNumber, undefined, { numeric: true })),
+    }));
+  })();
+
+  const dateLabel = startDate === endDate
+    ? formatDisplayDate(startDate)
+    : `${formatDisplayDate(startDate)} – ${formatDisplayDate(endDate)}`;
   const billData: BillData = {
     customerName,
-    receivedDate,
+    receivedDate: startDate,
+    dateLabel,
     entries: sortedBillEntries,
     grandTotal,
     totalLength,
@@ -112,7 +137,7 @@ export default function BillScreen({ navigation, route }: any) {
             <View style={[s.stepBadge, { backgroundColor: colors.primary }]}>
               <Text style={s.stepNum}>1</Text>
             </View>
-            <Text style={[s.stepTitle, { color: colors.text }]}>Select Customer</Text>
+            <Text style={[s.stepTitle, { color: colors.text }]}>ग्राहक चुने</Text>
           </View>
           <TouchableOpacity
             style={[s.selectorBtn, { backgroundColor: colors.surface, borderColor: customerName ? colors.primary : colors.border }]}
@@ -130,54 +155,43 @@ export default function BillScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Step 2: Select Date */}
+        {/* Step 2: Select Date Range */}
         <View style={[s.stepCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={s.stepHeader}>
             <View style={[s.stepBadge, { backgroundColor: colors.secondary }]}>
               <Text style={s.stepNum}>2</Text>
             </View>
-            <Text style={[s.stepTitle, { color: colors.text }]}>Select Date</Text>
+            <Text style={[s.stepTitle, { color: colors.text }]}>दिनांक सीमा चुनें</Text>
           </View>
-
-          {uniqueDates.length > 0 && customerName ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
-              {uniqueDates.map((d) => (
-                <TouchableOpacity
-                  key={d}
-                  style={[
-                    s.datePill,
-                    {
-                      backgroundColor: receivedDate === d ? colors.primary : colors.surface,
-                      borderColor: receivedDate === d ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => setReceivedDate(d)}
-                >
-                  <Text style={[s.datePillText, { color: receivedDate === d ? '#fff' : colors.text }]}>
-                    {formatDisplayDate(d)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          ) : null}
-
-          <TouchableOpacity
-            style={[s.selectorBtn, { backgroundColor: colors.surface, borderColor: receivedDate ? colors.secondary : colors.border }]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Ionicons name="calendar-outline" size={18} color={receivedDate ? colors.secondary : colors.textMuted} />
-            <Text style={[s.selectorText, { color: receivedDate ? colors.text : colors.textMuted }]}>
-              {receivedDate ? formatDisplayDate(receivedDate) : 'Choose a date'}
-            </Text>
-            <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              style={[s.selectorBtn, { flex: 1, borderColor: startDate ? colors.secondary : colors.border }]}
+              onPress={() => setShowStartPicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={16} color={startDate ? colors.secondary : colors.textMuted} />
+              <View style={{ flex: 1 }}>
+                <Text style={[{ fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }]}>From</Text>
+                <Text style={[{ fontSize: 13, fontWeight: '600', color: colors.text }]}>{formatDisplayDate(startDate)}</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.selectorBtn, { flex: 1, borderColor: endDate ? colors.secondary : colors.border }]}
+              onPress={() => setShowEndPicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={16} color={endDate ? colors.secondary : colors.textMuted} />
+              <View style={{ flex: 1 }}>
+                <Text style={[{ fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }]}>To</Text>
+                <Text style={[{ fontSize: 13, fontWeight: '600', color: colors.text }]}>{formatDisplayDate(endDate)}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search Button */}
         <TouchableOpacity
           style={[s.searchBtn, { backgroundColor: colors.primary }]}
           onPress={fetchBill}
-          disabled={!customerName || !receivedDate}
+          disabled={!customerName || !startDate || !endDate}
         >
           <Ionicons name="search-outline" size={20} color="#fff" />
           <Text style={s.searchBtnText}>Load Bill Entries</Text>
@@ -197,8 +211,8 @@ export default function BillScreen({ navigation, route }: any) {
                 <Text style={[s.billMetaValue, { color: colors.text }]}>{customerName}</Text>
               </View>
               <View style={s.billMetaItem}>
-                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>Date</Text>
-                <Text style={[s.billMetaValue, { color: colors.text }]}>{formatDisplayDate(receivedDate)}</Text>
+                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>Date Range</Text>
+                <Text style={[s.billMetaValue, { color: colors.text }]} numberOfLines={2}>{dateLabel}</Text>
               </View>
               <View style={s.billMetaItem}>
                 <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>Entries</Text>
@@ -208,43 +222,54 @@ export default function BillScreen({ navigation, route }: any) {
 
             {billEntries.length === 0 ? (
               <Text style={[s.noEntries, { color: colors.textMuted }]}>
-                No cloth entries found for this customer on this date.
+                No cloth entries found for this customer on the selected dates.
               </Text>
             ) : (
               <>
-                {/* Table Header */}
-                <View style={[s.tableRow, s.tableHeader, { backgroundColor: colors.primary + '15' }]}>
-                    <Text style={[s.thCell, s.col1, { color: colors.primary }]}>#</Text>
-                    <Text style={[s.thCell, s.col2, { color: colors.primary }]}>No.</Text>
-                    <Text style={[s.thCell, s.col3, { color: colors.primary }]}>Length</Text>
-                    <Text style={[s.thCell, s.col4, { color: colors.primary }]}>Color Rate</Text>
-                    <Text style={[s.thCell, s.col5, { color: colors.primary }]}>Color Amount</Text>
-                    <Text style={[s.thCell, s.col6, { color: colors.primary }]}>Total</Text>
-                </View>
-
-                  {billEntries.map((entry, idx) => (
-                    <View
-                      key={entry.id}
-                      style={[s.tableRow, { backgroundColor: idx % 2 === 0 ? colors.surface : colors.background, borderBottomColor: colors.border }]}
-                    >
-                      <Text style={[s.tdCell, s.col1, { color: colors.textSecondary }]}>{idx + 1}</Text>
-                      <Text style={[s.tdCell, s.col2, { color: colors.text, fontWeight: '700' }]}>{entry.clothNumber}</Text>
-                      <Text style={[s.tdCell, s.col3, { color: colors.text }]}>{entry.clothLength.toFixed(2)}m</Text>
-                      <Text style={[s.tdCell, s.col4, { color: colors.text }]}>{formatCurrency(entry.coloringCostPerUnit)}</Text>
-                      <Text style={[s.tdCell, s.col5, { color: colors.text }]}>{formatCurrency(entry.coloringTotal)}</Text>
-                      <Text style={[s.tdCell, s.col6, { color: colors.success, fontWeight: '700' }]}>{formatCurrency(entry.coloringTotal)}</Text>
+                {billByDate.map(({ date, entries: dateEntries }, sectionIdx) => {
+                  const dateLength = dateEntries.reduce((sum, e) => sum + e.clothLength, 0);
+                  const dateColoring = dateEntries.reduce((sum, e) => sum + e.coloringTotal, 0);
+                  return (
+                    <View key={date} style={sectionIdx > 0 ? { marginTop: 12 } : {}}>
+                      {/* Date section header */}
+                      <View style={[s.dateSectionHeader, { backgroundColor: colors.secondary }]}>
+                        <Ionicons name="calendar-outline" size={14} color="#fff" />
+                        <Text style={[s.dateSectionTitle, { color: '#fff' }]}>{formatDisplayDate(date)}</Text>
+                        <Text style={[s.dateSectionCount, { color: 'rgba(255,255,255,0.75)' }]}>{dateEntries.length} items</Text>
+                      </View>
+                      {/* Table Header */}
+                      <View style={[s.tableRow, s.tableHeader, { backgroundColor: colors.primary + '15' }]}>
+                        <Text style={[s.thCell, s.col1, { color: colors.primary }]}>#</Text>
+                        <Text style={[s.thCell, s.col2, { color: colors.primary }]}>No.</Text>
+                        <Text style={[s.thCell, s.col3, { color: colors.primary }]}>Length</Text>
+                        <Text style={[s.thCell, s.col4, { color: colors.primary }]}>Color Rate</Text>
+                        <Text style={[s.thCell, s.col5, { color: colors.primary }]}>Color Amt</Text>
+                        <Text style={[s.thCell, s.col6, { color: colors.primary }]}>Total</Text>
+                      </View>
+                      {dateEntries.map((entry, idx) => (
+                        <View
+                          key={entry.id}
+                          style={[s.tableRow, { backgroundColor: idx % 2 === 0 ? colors.surface : colors.background, borderBottomColor: colors.border }]}
+                        >
+                          <Text style={[s.tdCell, s.col1, { color: colors.textSecondary }]}>{idx + 1}</Text>
+                          <Text style={[s.tdCell, s.col2, { color: colors.text, fontWeight: '700' }]}>{entry.clothNumber}</Text>
+                          <Text style={[s.tdCell, s.col3, { color: colors.text }]}>{entry.clothLength.toFixed(2)}m</Text>
+                          <Text style={[s.tdCell, s.col4, { color: colors.text }]}>{formatCurrency(entry.coloringCostPerUnit)}</Text>
+                          <Text style={[s.tdCell, s.col5, { color: colors.text }]}>{formatCurrency(entry.coloringTotal)}</Text>
+                          <Text style={[s.tdCell, s.col6, { color: colors.success, fontWeight: '700' }]}>{formatCurrency(entry.coloringTotal)}</Text>
+                        </View>
+                      ))}
+                      {/* Date Subtotal */}
+                      <View style={[s.tableRow, s.totalRow, { backgroundColor: colors.secondary + '10', borderTopColor: colors.secondary }]}>
+                        <Text style={[s.totalCell, { color: colors.text, flex: 3 }]}>Subtotal</Text>
+                        <Text style={[s.totalCell, s.col3, { color: colors.text }]}>{dateLength.toFixed(2)}m</Text>
+                        <Text style={[s.totalCell, s.col4, { color: colors.text }]}></Text>
+                        <Text style={[s.totalCell, s.col5, { color: colors.text }]}>{formatCurrency(dateColoring)}</Text>
+                        <Text style={[s.totalCell, s.col6, { color: colors.secondary, fontSize: 13 }]}>{formatCurrency(dateColoring)}</Text>
+                      </View>
                     </View>
-                  ))}
-
-                {/* Total Row */}
-                  <View style={[s.tableRow, s.totalRow, { backgroundColor: colors.primary + '10', borderTopColor: colors.primary }]}> 
-                    <Text style={[s.totalCell, { color: colors.text, flex: 3 }]}>TOTAL</Text>
-                    <Text style={[s.totalCell, s.col3, { color: colors.text }]}>{totalLength.toFixed(2)}m</Text>
-                    <Text style={[s.totalCell, s.col4, { color: colors.text }]}></Text>
-                    <Text style={[s.totalCell, s.col5, { color: colors.text }]}>{formatCurrency(totalColoring)}</Text>
-                    <Text style={[s.totalCell, s.col6, { color: colors.primary, fontSize: 14 }]}>{formatCurrency(totalColoring)}</Text>
-                  </View>
-
+                  );
+                })}
                 {/* Grand Total Banner */}
                 <View style={[s.grandTotalBanner, { backgroundColor: colors.primary }]}>
                   <Text style={s.grandTotalLabel}>Grand Total Payable</Text>
@@ -325,38 +350,72 @@ export default function BillScreen({ navigation, route }: any) {
         </View>
       </Modal>
 
-      {/* Date Picker */}
-      {Platform.OS === 'ios' && showDatePicker && (
-        <Modal transparent animationType="slide" visible={showDatePicker} onRequestClose={() => setShowDatePicker(false)}>
+      {/* Start Date Picker */}
+      {Platform.OS === 'ios' && showStartPicker && (
+        <Modal transparent animationType="slide" visible={showStartPicker} onRequestClose={() => setShowStartPicker(false)}>
           <View style={s.modalOverlay}>
             <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
               <View style={s.modalHeader}>
-                <Text style={[s.modalTitle, { color: colors.text }]}>Select Date</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Text style={[s.modalTitle, { color: colors.text }]}>From Date</Text>
+                <TouchableOpacity onPress={() => setShowStartPicker(false)}>
                   <Text style={[s.doneBtn, { color: colors.primary }]}>Done</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker
-                value={receivedDate ? parseISO(receivedDate) : new Date()}
+                value={parseISO(startDate)}
                 mode="date"
                 display="spinner"
                 onChange={(_, date) => {
-                  if (date) setReceivedDate(toDBDate(date));
+                  if (date) { setStartDate(toDBDate(date)); setSearched(false); setBillEntries([]); }
                 }}
               />
             </View>
           </View>
         </Modal>
       )}
-
-      {Platform.OS === 'android' && showDatePicker && (
+      {Platform.OS === 'android' && showStartPicker && (
         <DateTimePicker
-          value={receivedDate ? parseISO(receivedDate) : new Date()}
+          value={parseISO(startDate)}
           mode="date"
           display="default"
           onChange={(_, date) => {
-            setShowDatePicker(false);
-            if (date) setReceivedDate(toDBDate(date));
+            setShowStartPicker(false);
+            if (date) { setStartDate(toDBDate(date)); setSearched(false); setBillEntries([]); }
+          }}
+        />
+      )}
+
+      {/* End Date Picker */}
+      {Platform.OS === 'ios' && showEndPicker && (
+        <Modal transparent animationType="slide" visible={showEndPicker} onRequestClose={() => setShowEndPicker(false)}>
+          <View style={s.modalOverlay}>
+            <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
+              <View style={s.modalHeader}>
+                <Text style={[s.modalTitle, { color: colors.text }]}>To Date</Text>
+                <TouchableOpacity onPress={() => setShowEndPicker(false)}>
+                  <Text style={[s.doneBtn, { color: colors.primary }]}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={parseISO(endDate)}
+                mode="date"
+                display="spinner"
+                onChange={(_, date) => {
+                  if (date) { setEndDate(toDBDate(date)); setSearched(false); setBillEntries([]); }
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+      {Platform.OS === 'android' && showEndPicker && (
+        <DateTimePicker
+          value={parseISO(endDate)}
+          mode="date"
+          display="default"
+          onChange={(_, date) => {
+            setShowEndPicker(false);
+            if (date) { setEndDate(toDBDate(date)); setSearched(false); setBillEntries([]); }
           }}
         />
       )}
@@ -445,6 +504,15 @@ function createStyles(colors: any) {
     col5: { flex: 1.4 },
     col6: { flex: 1.4, textAlign: 'right' },
     noEntries: { textAlign: 'center', padding: 24, fontSize: 14 },
+    dateSectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    dateSectionTitle: { fontSize: 13, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5, flex: 1 },
+    dateSectionCount: { fontSize: 11, fontWeight: '600' },
     grandTotalBanner: {
       padding: 16,
       alignItems: 'center',

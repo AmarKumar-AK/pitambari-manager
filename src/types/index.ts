@@ -47,6 +47,7 @@ export interface DashboardStats {
 export interface BillData {
   customerName: string;
   receivedDate: string;
+  dateLabel?: string;
   entries: ClothEntry[];
   grandTotal: number;
   totalLength: number;

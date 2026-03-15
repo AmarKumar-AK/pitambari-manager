@@ -4,19 +4,53 @@ import { BillData } from '../types';
 import { formatDisplayDate } from './dateUtils';
 
 function buildBillHTML(bill: BillData): string {
-  const rows = bill.entries
-      .map(
-        (entry, i) => `
+  // Group entries by date
+  const dateMap = new Map<string, typeof bill.entries>();
+  for (const e of bill.entries) {
+    if (!dateMap.has(e.receivedDate)) dateMap.set(e.receivedDate, []);
+    dateMap.get(e.receivedDate)!.push(e);
+  }
+  const sortedDates = [...dateMap.keys()].sort();
+
+  const dateSections = sortedDates.map(date => {
+    const dateEntries = dateMap.get(date)!;
+    const dateLength = dateEntries.reduce((s, e) => s + e.clothLength, 0);
+    const dateColoring = dateEntries.reduce((s, e) => s + e.coloringTotal, 0);
+    const rows = dateEntries.map((entry, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td style="text-align:center;font-weight:700">${entry.clothNumber}</td>
+        <td style="text-align:right">${entry.clothLength.toFixed(2)} m</td>
+        <td style="text-align:right">₹${entry.coloringCostPerUnit.toFixed(2)}</td>
+        <td style="text-align:right">₹${entry.coloringTotal.toFixed(2)}</td>
+        <td style="text-align:right;font-weight:700;color:#4F46E5">₹${entry.coloringTotal.toFixed(2)}</td>
+      </tr>`).join('');
+    return `
+    <div class="date-section">
+      <div class="date-header">${formatDisplayDate(date)}</div>
+      <table>
+        <thead>
           <tr>
-            <td>${i + 1}</td>
-            <td style="text-align:center;font-weight:700">${entry.clothNumber}</td>
-            <td style="text-align:right">${entry.clothLength.toFixed(2)} m</td>
-            <td style="text-align:right">₹${entry.coloringCostPerUnit.toFixed(2)}</td>
-            <td style="text-align:right">₹${entry.coloringTotal.toFixed(2)}</td>
-            <td style="text-align:right;font-weight:700;color:#4F46E5">₹${entry.coloringTotal.toFixed(2)}</td>
-          </tr>`
-      )
-    .join('');
+            <th>#</th>
+            <th style="text-align:center">Cloth No.</th>
+            <th style="text-align:right">Length (m)</th>
+            <th style="text-align:right">Color Rate</th>
+            <th style="text-align:right">Color Amount</th>
+            <th style="text-align:right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr class="subtotal-row">
+            <td colspan="2">Subtotal</td>
+            <td style="text-align:right">${dateLength.toFixed(2)} m</td>
+            <td colspan="2"></td>
+            <td style="text-align:right;color:#6366F1">₹${dateColoring.toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+  }).join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -81,6 +115,25 @@ function buildBillHTML(bill: BillData): string {
       border-top: 2px solid #4F46E5;
     }
 
+    .date-section { margin-bottom: 24px; }
+    .date-header {
+      background: #EEF2FF;
+      color: #4F46E5;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .subtotal-row td {
+      background: #F0FDF4 !important;
+      font-weight: 700;
+      font-size: 12px;
+      border-top: 1.5px solid #22C55E;
+    }
+
     .grand-total {
       margin-top: 20px;
       text-align: right;
@@ -115,7 +168,7 @@ function buildBillHTML(bill: BillData): string {
     </div>
     <div class="meta-box">
       <div class="meta-label">Date of Cloth</div>
-      <div class="meta-value">${formatDisplayDate(bill.receivedDate)}</div>
+      <div class="meta-value">${bill.dateLabel ?? formatDisplayDate(bill.receivedDate)}</div>
     </div>
     <div class="meta-box">
       <div class="meta-label">Bill Generated</div>
@@ -123,27 +176,7 @@ function buildBillHTML(bill: BillData): string {
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th style="text-align:center">Cloth No.</th>
-        <th style="text-align:right">Length (m)</th>
-        <th style="text-align:right">Color Rate</th>
-        <th style="text-align:right">Color Amount</th>
-        <th style="text-align:right">Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rows}
-      <tr class="summary-row">
-        <td colspan="2">TOTAL</td>
-        <td style="text-align:right">${bill.totalLength.toFixed(2)} m</td>
-        <td colspan="4"></td>
-        <td style="text-align:right;color:#4F46E5">₹${bill.grandTotal.toFixed(2)}</td>
-      </tr>
-    </tbody>
-  </table>
+  ${dateSections}
 
   <div class="grand-total">
     <div class="label">Grand Total Payable</div>

@@ -288,6 +288,21 @@ export function useClothQueries() {
     return rows.map(mapEntry);
   };
 
+  const getEntriesByCustomerAndDates = async (
+    customerName: string,
+    dates: string[]
+  ): Promise<ClothEntry[]> => {
+    if (!customerName || dates.length === 0) return [];
+    const placeholders = dates.map(() => '?').join(', ');
+    const rows = await db.getAllAsync<RawClothEntry>(
+      `SELECT ${SELECT_COLS} FROM cloth_entries
+       WHERE customer_name = ? AND received_date IN (${placeholders})
+       ORDER BY received_date ASC, id ASC`,
+      [customerName, ...dates]
+    );
+    return rows.map(mapEntry);
+  };
+
   // ── STATS ─────────────────────────────────────────────────────────────────────
 
   const getDashboardStats = async (): Promise<DashboardStats> => {
@@ -469,6 +484,7 @@ export function useClothQueries() {
     getBatchEntries,
     getEntriesByCustomerAndDate,
     getEntriesByCustomerAndDateRange,
+    getEntriesByCustomerAndDates,
     getDashboardStats,
     getAllCustomers,
     searchCustomerNames,

@@ -21,6 +21,7 @@ import { formatCurrency } from '../utils/calculations';
 import { formatDisplayDate, toDBDate, todayDB } from '../utils/dateUtils';
 import { generateAndSharePDF, printBill } from '../utils/pdfGenerator';
 import { parseISO } from 'date-fns';
+import { CUSTOMERS } from '../data/customers';
 
 export default function BillScreen({ navigation, route }: any) {
   const { colors } = useTheme();
@@ -149,7 +150,12 @@ export default function BillScreen({ navigation, route }: any) {
               color={customerName ? colors.primary : colors.textMuted}
             />
             <Text style={[s.selectorText, { color: customerName ? colors.text : colors.textMuted }]}>
-              {customerName || 'ग्राहक चुनें'}
+              {customerName
+                ? (() => {
+                    const c = CUSTOMERS.find((x) => x.name === customerName);
+                    return c ? `${c.shortForm}  —  ${c.name}` : customerName;
+                  })()
+                : 'ग्राहक चुनें'}
             </Text>
             <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
           </TouchableOpacity>
@@ -338,7 +344,12 @@ export default function BillScreen({ navigation, route }: any) {
                   }}
                 >
                   <Ionicons name="person-outline" size={16} color={customerName === item ? colors.primary : colors.textMuted} />
-                  <Text style={[s.modalOptionText, { color: colors.text }]}>{item}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.modalOptionText, { color: colors.text }]}>
+                      {CUSTOMERS.find((c) => c.name === item)?.shortForm ?? item}
+                    </Text>
+                    <Text style={[{ fontSize: 12, color: colors.textMuted, marginTop: 1 }]}>{item}</Text>
+                  </View>
                   {customerName === item && <Ionicons name="checkmark" size={18} color={colors.primary} />}
                 </TouchableOpacity>
               )}

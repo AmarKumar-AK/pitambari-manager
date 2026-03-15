@@ -16,24 +16,27 @@ function buildBillHTML(bill: BillData): string {
     const dateEntries = dateMap.get(date)!;
     const dateLength = dateEntries.reduce((s, e) => s + e.clothLength, 0);
     const dateColoring = dateEntries.reduce((s, e) => s + e.coloringTotal, 0);
+    // Collect unique non-empty bill numbers for this date
+    const billNums = [...new Set(dateEntries.map(e => e.billNumber).filter(Boolean))];
+    const billLabel = billNums.length > 0 ? ` &nbsp;·&nbsp; Bill #${billNums.join(', #')}` : '';
     const rows = dateEntries.map((entry, i) => `
       <tr>
         <td>${i + 1}</td>
         <td style="text-align:center;font-weight:700">${entry.clothNumber}</td>
-        <td style="text-align:right">${entry.clothLength.toFixed(2)} m</td>
+        <td style="text-align:right">${entry.clothLength.toFixed(2)} चौका</td>
         <td style="text-align:right">₹${entry.coloringCostPerUnit.toFixed(2)}</td>
         <td style="text-align:right">₹${entry.coloringTotal.toFixed(2)}</td>
         <td style="text-align:right;font-weight:700;color:#4F46E5">₹${entry.coloringTotal.toFixed(2)}</td>
       </tr>`).join('');
     return `
     <div class="date-section">
-      <div class="date-header">${formatDisplayDate(date)}</div>
+      <div class="date-header">${formatDisplayDate(date)}${billLabel}</div>
       <table>
         <thead>
           <tr>
             <th>#</th>
             <th style="text-align:center">Cloth No.</th>
-            <th style="text-align:right">Length (m)</th>
+            <th style="text-align:right">लंबाई (चौका)</th>
             <th style="text-align:right">Color Rate</th>
             <th style="text-align:right">Color Amount</th>
             <th style="text-align:right">Total</th>
@@ -43,7 +46,7 @@ function buildBillHTML(bill: BillData): string {
           ${rows}
           <tr class="subtotal-row">
             <td colspan="2">Subtotal</td>
-            <td style="text-align:right">${dateLength.toFixed(2)} m</td>
+            <td style="text-align:right">${dateLength.toFixed(2)} चौका</td>
             <td colspan="2"></td>
             <td style="text-align:right;color:#6366F1">₹${dateColoring.toFixed(2)}</td>
           </tr>

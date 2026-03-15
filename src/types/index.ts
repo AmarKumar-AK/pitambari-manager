@@ -12,6 +12,7 @@ export interface ClothEntry {
   totalCost: number;
   notes: string;
   batchId: string;
+  billNumber: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +26,7 @@ export interface ClothBatch {
   receivedDate: string;
   coloringCostPerUnit: number;
   notes: string;
+  billNumber: string;
   entries: ClothEntry[];
 }
 

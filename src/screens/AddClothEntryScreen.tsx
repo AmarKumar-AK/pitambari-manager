@@ -34,6 +34,7 @@ interface FormState {
   customerName: string;
   receivedDate: string;
   notes: string;
+  billNumber: string;
 }
 
 let rowCounter = 0;
@@ -55,6 +56,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
     customerName: '',
     receivedDate: todayDB(),
     notes: '',
+    billNumber: '',
   });
 
   const [clothRows, setClothRows] = useState<ClothRow[]>([newRow()]);
@@ -81,6 +83,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
               customerName: first.customerName,
               receivedDate: first.receivedDate,
               notes: first.notes,
+              billNumber: first.billNumber ?? '',
             });
             setClothRows(
               batchEntries.map((e) => ({
@@ -97,6 +100,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
               customerName: entry.customerName,
               receivedDate: entry.receivedDate,
               notes: entry.notes,
+              billNumber: entry.billNumber ?? '',
             });
             setClothRows([
               { id: String(++rowCounter), clothNumber: entry.clothNumber, clothLength: entry.clothLength.toString() },
@@ -176,6 +180,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             totalCost,
             notes: form.notes.trim(),
             batchId: newBatchId,
+            billNumber: form.billNumber.trim(),
           });
         }
       } else {
@@ -202,6 +207,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             totalCost,
             notes: form.notes.trim(),
             batchId: newBatchId,
+            billNumber: form.billNumber.trim(),
           });
         }
       }
@@ -389,6 +395,20 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             )}
           </View>
         )}
+
+        {/* ── Bill Number ── */}
+        <Text style={[s.label, { color: colors.text }]}>बिल नंबर (optional)</Text>
+        <View style={[s.inputRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Ionicons name="receipt-outline" size={18} color={colors.textMuted} />
+          <TextInput
+            style={[s.textInput, { color: colors.text }]}
+            value={form.billNumber}
+            onChangeText={(v) => updateField('billNumber', v)}
+            placeholder="e.g. 101"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="default"
+          />
+        </View>
 
         {/* ── Notes ── */}
         <Text style={[s.label, { color: colors.text }]}>Notes (optional)</Text>

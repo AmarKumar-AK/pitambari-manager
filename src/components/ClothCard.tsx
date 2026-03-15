@@ -55,7 +55,14 @@ export default function ClothCard({
       {/* Header Row: customer shortform + date + actions */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={[styles.shortForm, { color: colors.primary }]}>{shortForm}</Text>
+          <View style={styles.shortFormRow}>
+            <Text style={[styles.shortForm, { color: colors.primary }]}>{shortForm}</Text>
+            {!!batch.billNumber && (
+              <View style={[styles.billBadge, { backgroundColor: colors.primary + '18', borderColor: colors.primary + '40' }]}>
+                <Text style={[styles.billBadgeText, { color: colors.primary }]}>#{batch.billNumber}</Text>
+              </View>
+            )}
+          </View>
           <Text style={[styles.fullName, { color: colors.textMuted }]}>{batch.customerName}</Text>
         </View>
         <View style={styles.headerRight}>
@@ -139,9 +146,25 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexShrink: 1,
   },
+  shortFormRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
   shortForm: {
     fontSize: 18,
     fontWeight: '800',
+  },
+  billBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  billBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   fullName: {
     fontSize: 12,

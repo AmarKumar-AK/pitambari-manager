@@ -18,6 +18,7 @@ export async function initializeDatabase(db: SQLite.SQLiteDatabase): Promise<voi
       total_cost REAL NOT NULL DEFAULT 0,
       notes TEXT DEFAULT '',
       batch_id TEXT DEFAULT '',
+      bill_number TEXT DEFAULT '',
       created_at TEXT DEFAULT (datetime('now','localtime')),
       updated_at TEXT DEFAULT (datetime('now','localtime'))
     )
@@ -45,6 +46,13 @@ export async function initializeDatabase(db: SQLite.SQLiteDatabase): Promise<voi
 
   // Migration: ensure existing NULL batch_id values become empty string
   await db.execAsync(`UPDATE cloth_entries SET batch_id = '' WHERE batch_id IS NULL`);
+
+  // Migration: add bill_number column for existing installs
+  try {
+    await db.execAsync(`ALTER TABLE cloth_entries ADD COLUMN bill_number TEXT DEFAULT ''`);
+  } catch (_) {
+    // Column already exists
+  }
 
   try {
     await db.execAsync(`CREATE INDEX IF NOT EXISTS idx_cloth_batch ON cloth_entries(batch_id)`);

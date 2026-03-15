@@ -17,12 +17,13 @@ type RawClothEntry = {
   total_cost: number;
   notes: string;
   batch_id: string;   // always a string after COALESCE
+  bill_number: string;
   created_at: string;
   updated_at: string;
 };
 
 // Explicit column list used in every SELECT to avoid NULL-column NPE on Android
-const SELECT_COLS = "id, cloth_number, customer_name, COALESCE(sent_by,'') AS sent_by, received_date, cloth_length, cloth_cost_per_unit, coloring_cost_per_unit, cloth_total, coloring_total, total_cost, COALESCE(notes,'') AS notes, COALESCE(batch_id,'') AS batch_id, created_at, updated_at";
+const SELECT_COLS = "id, cloth_number, customer_name, COALESCE(sent_by,'') AS sent_by, received_date, cloth_length, cloth_cost_per_unit, coloring_cost_per_unit, cloth_total, coloring_total, total_cost, COALESCE(notes,'') AS notes, COALESCE(batch_id,'') AS batch_id, COALESCE(bill_number,'') AS bill_number, created_at, updated_at";
 
 type RawCustomer = {
   name: string;
@@ -47,6 +48,7 @@ function mapEntry(raw: RawClothEntry): ClothEntry {
     totalCost: raw.total_cost,
     notes: raw.notes ?? '',
     batchId: raw.batch_id ?? '',
+    billNumber: raw.bill_number ?? '',
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   };
@@ -78,6 +80,7 @@ function groupIntoBatches(entries: ClothEntry[]): ClothBatch[] {
       receivedDate: first.receivedDate,
       coloringCostPerUnit: first.coloringCostPerUnit,
       notes: first.notes,
+      billNumber: first.billNumber ?? '',
       entries: items,
     };
   });
@@ -93,8 +96,8 @@ export function useClothQueries() {
       `INSERT INTO cloth_entries
          (cloth_number, customer_name, sent_by, received_date,
           cloth_length, cloth_cost_per_unit, coloring_cost_per_unit,
-          cloth_total, coloring_total, total_cost, notes, batch_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          cloth_total, coloring_total, total_cost, notes, batch_id, bill_number)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         entry.clothNumber,
         entry.customerName.trim(),
@@ -108,6 +111,7 @@ export function useClothQueries() {
         entry.totalCost,
         entry.notes.trim(),
         entry.batchId || '',
+        entry.billNumber || '',
       ]
     );
     // Ensure customer exists in customers table
@@ -126,7 +130,7 @@ export function useClothQueries() {
          cloth_number = ?, customer_name = ?, sent_by = ?,
          received_date = ?, cloth_length = ?, cloth_cost_per_unit = ?,
          coloring_cost_per_unit = ?, cloth_total = ?, coloring_total = ?,
-         total_cost = ?, notes = ?,
+         total_cost = ?, notes = ?, bill_number = ?,
          updated_at = datetime('now','localtime')
        WHERE id = ?`,
       [
@@ -141,6 +145,7 @@ export function useClothQueries() {
         entry.coloringTotal,
         entry.totalCost,
         entry.notes.trim(),
+        entry.billNumber || '',
         entry.id,
       ]
     );

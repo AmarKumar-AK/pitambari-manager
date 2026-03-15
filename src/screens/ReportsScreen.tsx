@@ -35,26 +35,26 @@ export default function ReportsScreen() {
     <SafeAreaView style={[s.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
       {/* Summary Banner */}
       <View style={[s.banner, { backgroundColor: colors.primary }]}>
-        <Text style={s.bannerTitle}>All-Time Summary</Text>
+        <Text style={s.bannerTitle}>सर्वकालीन सारांश</Text>
         <View style={s.bannerStats}>
           <View style={s.bannerStat}>
             <Text style={s.bannerStatValue}>{reports.length}</Text>
-            <Text style={s.bannerStatLabel}>Months</Text>
+            <Text style={s.bannerStatLabel}>महीने</Text>
           </View>
           <View style={s.bannerStatDiv} />
           <View style={s.bannerStat}>
             <Text style={s.bannerStatValue}>{totalEntries}</Text>
-            <Text style={s.bannerStatLabel}>Entries</Text>
+            <Text style={s.bannerStatLabel}>एंट्री</Text>
           </View>
           <View style={s.bannerStatDiv} />
           <View style={s.bannerStat}>
-            <Text style={s.bannerStatValue}>{totalMeters.toFixed(0)}m</Text>
-            <Text style={s.bannerStatLabel}>Cloth</Text>
+            <Text style={s.bannerStatValue}>{totalMeters.toFixed(0)} चौका</Text>
+            <Text style={s.bannerStatLabel}>कपड़ा</Text>
           </View>
           <View style={s.bannerStatDiv} />
           <View style={s.bannerStat}>
             <Text style={s.bannerStatValue}>{formatCurrency(totalRevenue)}</Text>
-            <Text style={s.bannerStatLabel}>Revenue</Text>
+            <Text style={s.bannerStatLabel}>आमदनी</Text>
           </View>
         </View>
       </View>
@@ -69,7 +69,7 @@ export default function ReportsScreen() {
               <Text style={[s.reportMonth, { color: colors.text }]}>{formatMonthYear(item.month)}</Text>
               <View style={[s.custBadge, { backgroundColor: colors.info + '20' }]}>
                 <Text style={[s.custBadgeText, { color: colors.info }]}>
-                  {item.customerCount} customer{item.customerCount !== 1 ? 's' : ''}
+                  {item.customerCount} ग्राहक
                 </Text>
               </View>
             </View>
@@ -77,17 +77,17 @@ export default function ReportsScreen() {
             <View style={[s.reportGrid, { borderTopColor: colors.border }]}>
               <View style={s.reportStat}>
                 <Text style={[s.reportStatValue, { color: colors.text }]}>{item.totalEntries}</Text>
-                <Text style={[s.reportStatLabel, { color: colors.textMuted }]}>Entries</Text>
+                <Text style={[s.reportStatLabel, { color: colors.textMuted }]}>एंट्री</Text>
               </View>
               <View style={[s.reportStatDiv, { backgroundColor: colors.border }]} />
               <View style={s.reportStat}>
-                <Text style={[s.reportStatValue, { color: colors.text }]}>{item.totalLength.toFixed(2)} m</Text>
-                <Text style={[s.reportStatLabel, { color: colors.textMuted }]}>Length</Text>
+                <Text style={[s.reportStatValue, { color: colors.text }]}>{item.totalLength.toFixed(2)} चौका</Text>
+                <Text style={[s.reportStatLabel, { color: colors.textMuted }]}>लंबाई</Text>
               </View>
               <View style={[s.reportStatDiv, { backgroundColor: colors.border }]} />
               <View style={s.reportStat}>
                 <Text style={[s.reportStatValue, { color: colors.success }]}>{formatCurrency(item.totalAmount)}</Text>
-                <Text style={[s.reportStatLabel, { color: colors.textMuted }]}>Revenue</Text>
+                <Text style={[s.reportStatLabel, { color: colors.textMuted }]}>आमदनी</Text>
               </View>
             </View>
 
@@ -110,8 +110,8 @@ export default function ReportsScreen() {
         ListEmptyComponent={
           <EmptyState
             icon="bar-chart-outline"
-            title="No reports yet"
-            subtitle="Monthly reports will appear once you add cloth entries"
+            title="अभी कोई रिपोर्ट नहीं"
+            subtitle="एंट्री डालने के बाद मासिक रिपोर्ट दिखेगी"
           />
         }
         showsVerticalScrollIndicator={false}

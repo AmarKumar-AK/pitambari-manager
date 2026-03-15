@@ -44,28 +44,28 @@ export default function MoreScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.title, { color: colors.text }]}>More</Text>
+        <Text style={[styles.title, { color: colors.text }]}>और</Text>
 
         <MenuItem
           icon="receipt-outline"
           label="बिल बनाएं"
-          sublabel="Create and export a customer bill as PDF"
+          sublabel="PDF बनाएं और शेयर करें"
           color={colors.secondary}
           onPress={() => navigation.navigate('Bill')}
         />
 
         <MenuItem
           icon="bar-chart-outline"
-          label="Monthly Reports"
-          sublabel="View revenue and entries by month"
+          label="मासिक रिपोर्ट"
+          sublabel="महीनेवार आमदनी और एंट्री देखें"
           color={colors.info}
           onPress={() => navigation.navigate('Reports')}
         />
 
         <MenuItem
           icon="settings-outline"
-          label="Settings"
-          sublabel="Dark mode, backup & app information"
+          label="सेटिंग्स"
+          sublabel="डार्क मोड, बैकअप और जानकारी"
           color={colors.warning}
           onPress={() => navigation.navigate('Settings')}
         />

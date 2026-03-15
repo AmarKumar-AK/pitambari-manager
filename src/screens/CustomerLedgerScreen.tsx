@@ -62,7 +62,7 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
       {/* Summary card */}
       <View style={[s.summaryCard, { backgroundColor: colors.primary }]}>
         <Text style={s.summaryName}>{customerName}</Text>
-        <Text style={s.summarySubtitle}>{entries.length} record{entries.length !== 1 ? 's' : ''}</Text>
+        <Text style={s.summarySubtitle}>{entries.length} रिकॉर्ड</Text>
 
           <View style={s.summaryStats}>
           <View style={s.summaryStat}>
@@ -77,7 +77,7 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
         </View>
 
         <View style={s.grandTotalRow}>
-          <Text style={s.grandTotalLabel}>Grand Total</Text>
+          <Text style={s.grandTotalLabel}>कुल देय राशि</Text>
           <Text style={s.grandTotalValue}>{formatCurrency(grandTotal)}</Text>
         </View>
       </View>
@@ -100,7 +100,7 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
         </TouchableOpacity>
       </View>
 
-      <Text style={[s.sectionTitle, { color: colors.text }]}>All Entries</Text>
+      <Text style={[s.sectionTitle, { color: colors.text }]}>सभी एंट्री</Text>
     </>
   );
 
@@ -122,7 +122,7 @@ export default function CustomerLedgerScreen({ navigation, route }: any) {
         ListHeaderComponent={<ListHeader />}
         ListEmptyComponent={
           !loading ? (
-            <EmptyState icon="layers-outline" title="No entries found" />
+            <EmptyState icon="layers-outline" title="कोई एंट्री नहीं" />
           ) : null
         }
         showsVerticalScrollIndicator={false}

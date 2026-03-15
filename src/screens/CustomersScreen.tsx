@@ -81,9 +81,9 @@ export default function CustomersScreen({ navigation }: any) {
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={s.header}>
-        <Text style={[s.title, { color: colors.text }]}>Customers</Text>
+        <Text style={[s.title, { color: colors.text }]}>ग्राहक</Text>
         <Text style={[s.count, { color: colors.textMuted }]}>
-          {customers.length} total
+          {customers.length} कुल
         </Text>
       </View>
 
@@ -91,7 +91,7 @@ export default function CustomersScreen({ navigation }: any) {
         <SearchBar
           value={search}
           onChangeText={handleSearch}
-          placeholder="Search customers..."
+          placeholder="ग्राहक खोजें..."
         />
       </View>
 
@@ -103,8 +103,8 @@ export default function CustomersScreen({ navigation }: any) {
         ListEmptyComponent={
           <EmptyState
             icon="people-outline"
-            title="No customers yet"
-            subtitle="Customers appear automatically when you add cloth entries"
+            title="कोई ग्राहक नहीं"
+            subtitle="कपड़ा एंट्री जोड़ने पर ग्राहक अपने आप दिखेंगे"
           />
         }
         showsVerticalScrollIndicator={false}

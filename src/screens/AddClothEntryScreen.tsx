@@ -140,12 +140,12 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
 
   const handleSave = async () => {
     if (!form.customerName.trim()) {
-      Alert.alert('Required', 'Please enter the customer name.');
+      Alert.alert('जरूरी है', 'कृपया ग्राहक का नाम दर्ज करें।');
       return;
     }
     const validRows = clothRows.filter((r) => parseDecimal(r.clothLength) > 0);
     if (validRows.length === 0) {
-      Alert.alert('Required', 'Please enter a valid cloth length for at least one row.');
+      Alert.alert('जरूरी है', 'कम से कम एक कपड़े की लंबाई दर्ज करें।');
       return;
     }
 
@@ -213,7 +213,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
       }
       navigation.goBack();
     } catch (err) {
-      Alert.alert('Error', 'Failed to save entry. Please try again.');
+      Alert.alert('त्रुटि', 'एंट्री सेव नहीं हो सकी। दोबारा कोशिश करें।');
       console.error(err);
     } finally {
       setSaving(false);
@@ -255,7 +255,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
               <Text style={[s.customerSelectedShort, { color: colors.textMuted }]}>{form.customerName}</Text>
             </View>
           ) : (
-            <Text style={[s.clothNumBtnText, { color: colors.textMuted }]}>Select customer...</Text>
+            <Text style={[s.clothNumBtnText, { color: colors.textMuted }]}>ग्राहक चुनें...</Text>
           )}
           <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
         </TouchableOpacity>
@@ -277,9 +277,9 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             <View style={s.modalOverlay}>
               <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
                 <View style={s.modalHeader}>
-                  <Text style={[s.modalTitle, { color: colors.text }]}>Select Date</Text>
+                  <Text style={[s.modalTitle, { color: colors.text }]}>तारीख चुनें</Text>
                   <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Text style={[s.doneBtn, { color: colors.primary }]}>Done</Text>
+                    <Text style={[s.doneBtn, { color: colors.primary }]}>हो गया</Text>
                   </TouchableOpacity>
                 </View>
                 <DateTimePicker
@@ -308,7 +308,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
         {/* ── Cloth Rows ── */}
         <View style={s.rowsHeader}>
           <Text style={[s.sectionTitle, { color: colors.text }]}>
-            Cloth Items{!isEdit ? ` (${clothRows.length})` : ''}
+            कपड़े{!isEdit ? ` (${clothRows.length})` : ''}
           </Text>
           {!isEdit && (
             <TouchableOpacity
@@ -316,7 +316,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
               onPress={addRow}
             >
               <Ionicons name="add" size={16} color={colors.primary} />
-              <Text style={[s.addRowBtnText, { color: colors.primary }]}>Add Row</Text>
+              <Text style={[s.addRowBtnText, { color: colors.primary }]}>पंक्ति जोड़ें</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -331,7 +331,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
                 <View style={[s.rowIndexBadge, { backgroundColor: colors.primary }]}>
                   <Text style={s.rowIndexText}>{index + 1}</Text>
                 </View>
-                <Text style={[s.rowLabel, { color: colors.text }]}>Cloth Item {index + 1}</Text>
+                <Text style={[s.rowLabel, { color: colors.text }]}>कपड़ा {index + 1}</Text>
                 {!isEdit && clothRows.length > 1 && (
                   <TouchableOpacity
                     onPress={() => removeRow(row.id)}
@@ -358,7 +358,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
                   style={[s.textInput, { color: colors.text }]}
                   value={row.clothLength}
                   onChangeText={(v) => updateRow(row.id, 'clothLength', v)}
-                  placeholder="e.g. 12.5"
+                  placeholder="जैसे 12.5"
                   placeholderTextColor={colors.textMuted}
                   keyboardType="decimal-pad"
                 />
@@ -377,7 +377,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             onPress={addRow}
           >
             <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-            <Text style={[s.addRowBigText, { color: colors.primary }]}>Add Another Cloth Item</Text>
+            <Text style={[s.addRowBigText, { color: colors.primary }]}>और कपड़ा जोड़ें</Text>
           </TouchableOpacity>
         )}
 
@@ -390,34 +390,34 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
             </View>
             {clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length > 1 && (
               <Text style={[s.summaryNote, { color: colors.textMuted }]}>
-                {clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length} items will be saved as one record
+                {clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length} कपड़े एक साथ सेव होंगे
               </Text>
             )}
           </View>
         )}
 
         {/* ── Bill Number ── */}
-        <Text style={[s.label, { color: colors.text }]}>बिल नंबर (optional)</Text>
+        <Text style={[s.label, { color: colors.text }]}>बिल नंबर (वैकल्पिक)</Text>
         <View style={[s.inputRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="receipt-outline" size={18} color={colors.textMuted} />
           <TextInput
             style={[s.textInput, { color: colors.text }]}
             value={form.billNumber}
             onChangeText={(v) => updateField('billNumber', v)}
-            placeholder="e.g. 101"
+            placeholder="जैसे 101"
             placeholderTextColor={colors.textMuted}
             keyboardType="default"
           />
         </View>
 
         {/* ── Notes ── */}
-        <Text style={[s.label, { color: colors.text }]}>Notes (optional)</Text>
+        <Text style={[s.label, { color: colors.text }]}>नोट (वैकल्पिक)</Text>
         <View style={[s.notesRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <TextInput
             style={[s.notesInput, { color: colors.text }]}
             value={form.notes}
             onChangeText={(v) => updateField('notes', v)}
-            placeholder="Any additional notes..."
+            placeholder="कोई अतिरिक्त जानकारी..."
             placeholderTextColor={colors.textMuted}
             multiline
             numberOfLines={3}
@@ -438,11 +438,11 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
               <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
               <Text style={s.saveButtonText}>
                 {isEdit
-                  ? 'Update Entry'
-                  : `Save ${
+                  ? 'अपडेट करें'
+                  : `सेव करें ${
                       clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length > 1
-                        ? `${clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length} Entries`
-                        : 'Entry'
+                        ? `(${clothRows.filter((r) => parseDecimal(r.clothLength) > 0).length} कपड़े)`
+                        : ''
                     }`}
               </Text>
             </>
@@ -504,7 +504,7 @@ export default function AddClothEntryScreen({ navigation, route }: any) {
         <View style={s.modalOverlay}>
           <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
             <View style={s.modalHeader}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Select Cloth Number</Text>
+              <Text style={[s.modalTitle, { color: colors.text }]}>कपड़ा नंबर चुनें</Text>
               <TouchableOpacity onPress={() => setPickerRowId(null)}>
                 <Ionicons name="close" size={22} color={colors.textMuted} />
               </TouchableOpacity>

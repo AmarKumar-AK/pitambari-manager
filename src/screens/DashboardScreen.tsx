@@ -90,41 +90,41 @@ export default function DashboardScreen({ navigation }: any) {
         {/* ── Stats ── */}
         <View style={s.statsGrid}>
           <StatsCard
-            title="Today's Entries"
+            title="आज की एंट्री"
             value={stats.totalEntriesToday.toString()}
-            subtitle="records"
+            subtitle="रिकॉर्ड"
             icon="today-outline"
             color={colors.primary}
             style={s.halfCard}
           />
           <StatsCard
-            title="Today's Length"
-            value={`${stats.totalLengthToday.toFixed(1)} m`}
-            subtitle="meters"
+            title="आज की लंबाई"
+            value={`${stats.totalLengthToday.toFixed(1)} चौका`}
+            subtitle="चौका"
             icon="resize-outline"
             color={colors.secondary}
             style={s.halfCard}
           />
           <StatsCard
-            title="Total Earnings"
+            title="कुल कमाई"
             value={formatCurrency(stats.totalEarnings)}
-            subtitle="all time"
+            subtitle="अब तक"
             icon="cash-outline"
             color={colors.success}
             style={s.fullCard}
           />
           <StatsCard
-            title="Total Records"
+            title="कुल रिकॉर्ड"
             value={stats.totalEntries.toString()}
-            subtitle="entries"
+            subtitle="एंट्री"
             icon="document-text-outline"
             color={colors.warning}
             style={s.halfCard}
           />
           <StatsCard
-            title="Total Cloth"
-            value={`${stats.totalLength.toFixed(1)} m`}
-            subtitle="all time"
+            title="कुल कपड़ा"
+            value={`${stats.totalLength.toFixed(1)} चौका`}
+            subtitle="अब तक"
             icon="trending-up-outline"
             color={colors.info}
             style={s.halfCard}
@@ -152,18 +152,18 @@ export default function DashboardScreen({ navigation }: any) {
         {/* ── Recent Entries ── */}
         <View style={s.section}>
           <View style={s.sectionHeader}>
-            <Text style={[s.sectionTitle, { color: colors.text }]}>Recent Entries</Text>
+            <Text style={[s.sectionTitle, { color: colors.text }]}>ताज़ा रिकॉर्ड</Text>
             <TouchableOpacity onPress={() => navigation.navigate('RecordsTab')}>
-              <Text style={[s.seeAll, { color: colors.primary }]}>See all →</Text>
+              <Text style={[s.seeAll, { color: colors.primary }]}>सब देखें →</Text>
             </TouchableOpacity>
           </View>
 
           {recentEntries.length === 0 ? (
             <View style={[s.emptyBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Ionicons name="layers-outline" size={36} color={colors.textMuted} />
-              <Text style={[s.emptyText, { color: colors.textSecondary }]}>No entries yet</Text>
+              <Text style={[s.emptyText, { color: colors.textSecondary }]}>कोई रिकॉर्ड नहीं</Text>
               <Text style={[s.emptyHint, { color: colors.textMuted }]}>
-                Tap "नया माल" to record your first cloth entry
+                "नया माल" दबाएं और पहली एंट्री जोड़ें
               </Text>
             </View>
           ) : (

@@ -81,7 +81,7 @@ export default function ClothListScreen({ navigation }: any) {
     <SafeAreaView style={[s.safe, { backgroundColor: colors.background }]} edges={['top']}>
       {/* ── Header ── */}
       <View style={s.header}>
-        <Text style={[s.title, { color: colors.text }]}>Cloth Records</Text>
+        <Text style={[s.title, { color: colors.text }]}>सर्व रिकॉर्ड</Text>
         <TouchableOpacity
           style={[s.addBtn, { backgroundColor: colors.primary }]}
           onPress={() => navigation.navigate('AddEntry', { mode: 'add' })}
@@ -96,7 +96,7 @@ export default function ClothListScreen({ navigation }: any) {
           <SearchBar
             value={search}
             onChangeText={(v) => setSearch(v)}
-            placeholder="Search by customer short form"
+            placeholder="ग्राहक के नाम से खोजें"
           />
         </View>
         <TouchableOpacity
@@ -128,7 +128,7 @@ export default function ClothListScreen({ navigation }: any) {
             </View>
           ) : null}
           <TouchableOpacity onPress={clearFilters}>
-            <Text style={[s.clearText, { color: colors.error }]}>Clear all</Text>
+            <Text style={[s.clearText, { color: colors.error }]}>सभी हटाएं</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -137,12 +137,12 @@ export default function ClothListScreen({ navigation }: any) {
       {entries.length > 0 && (
         <View style={s.statsLine}>
           <Text style={[s.statsText, { color: colors.textMuted }]}>
-            {entries.length} record{entries.length !== 1 ? 's' : ''}
+            {entries.length} रिकॉर्ड
             {'  ·  '}
             {entries
               .flatMap((b) => b.entries)
               .reduce((sum, e) => sum + e.clothLength, 0)
-              .toFixed(2)} चौका total
+              .toFixed(2)} चौका कुल
           </Text>
         </View>
       )}
@@ -168,11 +168,11 @@ export default function ClothListScreen({ navigation }: any) {
           loading ? null : (
             <EmptyState
               icon="layers-outline"
-              title="No records found"
+              title="कोई रिकॉर्ड नहीं"
               subtitle={
                 hasFilters
-                  ? 'Try changing your search or filter'
-                  : 'Add your first cloth entry using the + button'
+                  ? 'खोज या फ़िल्टर बदलें'
+                  : 'नया माल डालने के लिए + दबाएं'
               }
             />
           )
@@ -190,7 +190,7 @@ export default function ClothListScreen({ navigation }: any) {
         <View style={s.modalOverlay}>
           <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
             <View style={s.modalHeader}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Filter by Date</Text>
+              <Text style={[s.modalTitle, { color: colors.text }]}>तारीख से फ़िल्टर</Text>
               <TouchableOpacity onPress={() => setShowDateFilter(false)}>
                 <Ionicons name="close" size={22} color={colors.textMuted} />
               </TouchableOpacity>
@@ -203,7 +203,7 @@ export default function ClothListScreen({ navigation }: any) {
               >
                 <Ionicons name="calendar-outline" size={18} color="#fff" />
                 <Text style={s.filterOptionBtnText}>
-                  {filterDate ? formatDisplayDate(filterDate) : 'Select a date'}
+                  {filterDate ? formatDisplayDate(filterDate) : 'तारीख चुनें'}
                 </Text>
               </TouchableOpacity>
 
@@ -215,7 +215,7 @@ export default function ClothListScreen({ navigation }: any) {
                     setShowDateFilter(false);
                   }}
                 >
-                  <Text style={[s.clearDateBtnText, { color: colors.error }]}>Clear Date Filter</Text>
+                  <Text style={[s.clearDateBtnText, { color: colors.error }]}>तारीख फ़िल्टर हटाएं</Text>
                 </TouchableOpacity>
               ) : null}
             </View>

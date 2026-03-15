@@ -55,7 +55,7 @@ export default function BillScreen({ navigation, route }: any) {
   const fetchBill = async () => {
     if (!customerName || !startDate || !endDate) return;
     if (endDate < startDate) {
-      Alert.alert('Invalid Range', 'End date cannot be before start date.');
+              Alert.alert('अमान्य तारीख', 'अंत तारीख शुरुआत तारीख से पहले नहीं हो सकती।');
       return;
     }
     const data = await queries.getEntriesByCustomerAndDateRange(customerName, startDate, endDate);
@@ -101,14 +101,14 @@ export default function BillScreen({ navigation, route }: any) {
 
   const handleGeneratePDF = async () => {
     if (billEntries.length === 0) {
-      Alert.alert('No Entries', 'No cloth entries found for the selected customer and date.');
+      Alert.alert('कोई एंट्री नहीं', 'चुने गए ग्राहक और तारीख के लिए कोई कपड़ा नहीं मिला।');
       return;
     }
     setGenerating(true);
     try {
       await generateAndSharePDF(billData);
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Failed to generate PDF.');
+      Alert.alert('त्रुटि', err?.message ?? 'PDF बनाने में विफल।');
     } finally {
       setGenerating(false);
     }
@@ -116,13 +116,13 @@ export default function BillScreen({ navigation, route }: any) {
 
   const handlePrint = async () => {
     if (billEntries.length === 0) {
-      Alert.alert('No Entries', 'No cloth entries found for the selected customer and date.');
+      Alert.alert('कोई एंट्री नहीं', 'चुने गए ग्राहक और तारीख के लिए कोई कपड़ा नहीं मिला।');
       return;
     }
     try {
       await printBill(billData);
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Failed to print.');
+      Alert.alert('त्रुटि', err?.message ?? 'प्रिंट विफल।');
     }
   };
 
@@ -149,7 +149,7 @@ export default function BillScreen({ navigation, route }: any) {
               color={customerName ? colors.primary : colors.textMuted}
             />
             <Text style={[s.selectorText, { color: customerName ? colors.text : colors.textMuted }]}>
-              {customerName || 'Choose a customer'}
+              {customerName || 'ग्राहक चुनें'}
             </Text>
             <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
           </TouchableOpacity>
@@ -170,7 +170,7 @@ export default function BillScreen({ navigation, route }: any) {
             >
               <Ionicons name="calendar-outline" size={16} color={startDate ? colors.secondary : colors.textMuted} />
               <View style={{ flex: 1 }}>
-                <Text style={[{ fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }]}>From</Text>
+                <Text style={[{ fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }]}>शुरुआत</Text>
                 <Text style={[{ fontSize: 13, fontWeight: '600', color: colors.text }]}>{formatDisplayDate(startDate)}</Text>
               </View>
             </TouchableOpacity>
@@ -180,7 +180,7 @@ export default function BillScreen({ navigation, route }: any) {
             >
               <Ionicons name="calendar-outline" size={16} color={endDate ? colors.secondary : colors.textMuted} />
               <View style={{ flex: 1 }}>
-                <Text style={[{ fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }]}>To</Text>
+                <Text style={[{ fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 }]}>अंत</Text>
                 <Text style={[{ fontSize: 13, fontWeight: '600', color: colors.text }]}>{formatDisplayDate(endDate)}</Text>
               </View>
             </TouchableOpacity>
@@ -194,7 +194,7 @@ export default function BillScreen({ navigation, route }: any) {
           disabled={!customerName || !startDate || !endDate}
         >
           <Ionicons name="search-outline" size={20} color="#fff" />
-          <Text style={s.searchBtnText}>Load Bill Entries</Text>
+          <Text style={s.searchBtnText}>हिसाब निकालो</Text>
         </TouchableOpacity>
 
         {/* Bill Preview */}
@@ -202,27 +202,27 @@ export default function BillScreen({ navigation, route }: any) {
           <View style={[s.billCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={s.billHeader}>
               <Text style={[s.billTitle, { color: colors.primary }]}>🧵 गुड्डू पप्पु</Text>
-              <Text style={[s.billSubtitle, { color: colors.textSecondary }]}>Cloth Coloring Bill</Text>
+              <Text style={[s.billSubtitle, { color: colors.textSecondary }]}>पितांबरी रंगाई बिल</Text>
             </View>
 
             <View style={[s.billMeta, { borderColor: colors.border }]}>
               <View style={s.billMetaItem}>
-                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>Customer</Text>
+                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>ग्राहक</Text>
                 <Text style={[s.billMetaValue, { color: colors.text }]}>{customerName}</Text>
               </View>
               <View style={s.billMetaItem}>
-                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>Date Range</Text>
+                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>तारीख सीमा</Text>
                 <Text style={[s.billMetaValue, { color: colors.text }]} numberOfLines={2}>{dateLabel}</Text>
               </View>
               <View style={s.billMetaItem}>
-                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>Entries</Text>
+                <Text style={[s.billMetaLabel, { color: colors.textMuted }]}>एंट्री</Text>
                 <Text style={[s.billMetaValue, { color: colors.text }]}>{billEntries.length}</Text>
               </View>
             </View>
 
             {billEntries.length === 0 ? (
               <Text style={[s.noEntries, { color: colors.textMuted }]}>
-                No cloth entries found for this customer on the selected dates.
+                इस ग्राहक के लिए चुनी गई तारीखों में कोई कपड़ा नहीं मिला।
               </Text>
             ) : (
               <>
@@ -235,16 +235,16 @@ export default function BillScreen({ navigation, route }: any) {
                       <View style={[s.dateSectionHeader, { backgroundColor: colors.secondary }]}>
                         <Ionicons name="calendar-outline" size={14} color="#fff" />
                         <Text style={[s.dateSectionTitle, { color: '#fff' }]}>{formatDisplayDate(date)}</Text>
-                        <Text style={[s.dateSectionCount, { color: 'rgba(255,255,255,0.75)' }]}>{dateEntries.length} items</Text>
+                        <Text style={[s.dateSectionCount, { color: 'rgba(255,255,255,0.75)' }]}>{dateEntries.length} कपड़े</Text>
                       </View>
                       {/* Table Header */}
                       <View style={[s.tableRow, s.tableHeader, { backgroundColor: colors.primary + '15' }]}>
                         <Text style={[s.thCell, s.col1, { color: colors.primary }]}>#</Text>
                         <Text style={[s.thCell, s.col2, { color: colors.primary }]}>No.</Text>
-                        <Text style={[s.thCell, s.col3, { color: colors.primary }]}>Length</Text>
-                        <Text style={[s.thCell, s.col4, { color: colors.primary }]}>Color Rate</Text>
-                        <Text style={[s.thCell, s.col5, { color: colors.primary }]}>Color Amt</Text>
-                        <Text style={[s.thCell, s.col6, { color: colors.primary }]}>Total</Text>
+                        <Text style={[s.thCell, s.col3, { color: colors.primary }]}>लंबाई</Text>
+                        <Text style={[s.thCell, s.col4, { color: colors.primary }]}>रेट</Text>
+                        <Text style={[s.thCell, s.col5, { color: colors.primary }]}>रंगाई</Text>
+                        <Text style={[s.thCell, s.col6, { color: colors.primary }]}>कुल</Text>
                       </View>
                       {dateEntries.map((entry, idx) => (
                         <View
@@ -253,7 +253,7 @@ export default function BillScreen({ navigation, route }: any) {
                         >
                           <Text style={[s.tdCell, s.col1, { color: colors.textSecondary }]}>{idx + 1}</Text>
                           <Text style={[s.tdCell, s.col2, { color: colors.text, fontWeight: '700' }]}>{entry.clothNumber}</Text>
-                          <Text style={[s.tdCell, s.col3, { color: colors.text }]}>{entry.clothLength.toFixed(2)}m</Text>
+                          <Text style={[s.tdCell, s.col3, { color: colors.text }]}>{entry.clothLength.toFixed(2)}चौका</Text>
                           <Text style={[s.tdCell, s.col4, { color: colors.text }]}>{formatCurrency(entry.coloringCostPerUnit)}</Text>
                           <Text style={[s.tdCell, s.col5, { color: colors.text }]}>{formatCurrency(entry.coloringTotal)}</Text>
                           <Text style={[s.tdCell, s.col6, { color: colors.success, fontWeight: '700' }]}>{formatCurrency(entry.coloringTotal)}</Text>
@@ -261,8 +261,8 @@ export default function BillScreen({ navigation, route }: any) {
                       ))}
                       {/* Date Subtotal */}
                       <View style={[s.tableRow, s.totalRow, { backgroundColor: colors.secondary + '10', borderTopColor: colors.secondary }]}>
-                        <Text style={[s.totalCell, { color: colors.text, flex: 3 }]}>Subtotal</Text>
-                        <Text style={[s.totalCell, s.col3, { color: colors.text }]}>{dateLength.toFixed(2)}m</Text>
+                        <Text style={[s.totalCell, { color: colors.text, flex: 3 }]}>उपकुल</Text>
+                        <Text style={[s.totalCell, s.col3, { color: colors.text }]}>{dateLength.toFixed(2)}चौका</Text>
                         <Text style={[s.totalCell, s.col4, { color: colors.text }]}></Text>
                         <Text style={[s.totalCell, s.col5, { color: colors.text }]}>{formatCurrency(dateColoring)}</Text>
                         <Text style={[s.totalCell, s.col6, { color: colors.secondary, fontSize: 13 }]}>{formatCurrency(dateColoring)}</Text>
@@ -272,7 +272,7 @@ export default function BillScreen({ navigation, route }: any) {
                 })}
                 {/* Grand Total Banner */}
                 <View style={[s.grandTotalBanner, { backgroundColor: colors.primary }]}>
-                  <Text style={s.grandTotalLabel}>Grand Total Payable</Text>
+                  <Text style={s.grandTotalLabel}>कुल देय राशि</Text>
                   <Text style={s.grandTotalAmount}>{formatCurrency(grandTotal)}</Text>
                 </View>
               </>
@@ -293,7 +293,7 @@ export default function BillScreen({ navigation, route }: any) {
               ) : (
                 <>
                   <Ionicons name="share-outline" size={20} color="#fff" />
-                  <Text style={s.pdfBtnText}>Share PDF</Text>
+                  <Text style={s.pdfBtnText}>PDF शेयर करें</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -304,7 +304,7 @@ export default function BillScreen({ navigation, route }: any) {
                 onPress={handlePrint}
               >
                 <Ionicons name="print-outline" size={20} color={colors.text} />
-                <Text style={[s.printBtnText, { color: colors.text }]}>Print</Text>
+                <Text style={[s.printBtnText, { color: colors.text }]}>प्रिंट</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -318,7 +318,7 @@ export default function BillScreen({ navigation, route }: any) {
         <View style={s.modalOverlay}>
           <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
             <View style={s.modalHeader}>
-              <Text style={[s.modalTitle, { color: colors.text }]}>Select Customer</Text>
+              <Text style={[s.modalTitle, { color: colors.text }]}>ग्राहक चुनें</Text>
               <TouchableOpacity onPress={() => setShowCustomerModal(false)}>
                 <Ionicons name="close" size={22} color={colors.textMuted} />
               </TouchableOpacity>
@@ -343,7 +343,7 @@ export default function BillScreen({ navigation, route }: any) {
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
-                <Text style={[s.noEntries, { color: colors.textMuted }]}>No customers found.</Text>
+                <Text style={[s.noEntries, { color: colors.textMuted }]}>कोई ग्राहक नहीं मिला।</Text>
               }
             />
           </View>
@@ -356,9 +356,9 @@ export default function BillScreen({ navigation, route }: any) {
           <View style={s.modalOverlay}>
             <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
               <View style={s.modalHeader}>
-                <Text style={[s.modalTitle, { color: colors.text }]}>From Date</Text>
+                <Text style={[s.modalTitle, { color: colors.text }]}>शुरुआत तारीख</Text>
                 <TouchableOpacity onPress={() => setShowStartPicker(false)}>
-                  <Text style={[s.doneBtn, { color: colors.primary }]}>Done</Text>
+                  <Text style={[s.doneBtn, { color: colors.primary }]}>हो गया</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker
@@ -391,9 +391,9 @@ export default function BillScreen({ navigation, route }: any) {
           <View style={s.modalOverlay}>
             <View style={[s.modalSheet, { backgroundColor: colors.surface }]}>
               <View style={s.modalHeader}>
-                <Text style={[s.modalTitle, { color: colors.text }]}>To Date</Text>
+                <Text style={[s.modalTitle, { color: colors.text }]}>अंत तारीख</Text>
                 <TouchableOpacity onPress={() => setShowEndPicker(false)}>
-                  <Text style={[s.doneBtn, { color: colors.primary }]}>Done</Text>
+                  <Text style={[s.doneBtn, { color: colors.primary }]}>हो गया</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker

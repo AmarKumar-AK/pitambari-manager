@@ -70,13 +70,13 @@ export default function SettingsScreen() {
     <SafeAreaView style={[s.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         {/* Appearance */}
-        <Text style={[s.sectionLabel, { color: colors.textMuted }]}>APPEARANCE</Text>
+        <Text style={[s.sectionLabel, { color: colors.textMuted }]}>रंग-रूप</Text>
         <View style={[s.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Row
             icon="moon-outline"
             iconColor={colors.secondary}
-            label="Dark Mode"
-            sublabel={isDark ? 'Enabled' : 'Disabled'}
+            label="डार्क मोड"
+            sublabel={isDark ? 'चालू' : 'बंद'}
             right={
               <Switch
                 value={isDark}
@@ -89,13 +89,13 @@ export default function SettingsScreen() {
         </View>
 
         {/* Data */}
-        <Text style={[s.sectionLabel, { color: colors.textMuted }]}>DATA MANAGEMENT</Text>
+        <Text style={[s.sectionLabel, { color: colors.textMuted }]}>डेटा प्रबंधन</Text>
         <View style={[s.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Row
             icon="cloud-upload-outline"
             iconColor={colors.success}
-            label="Export Backup"
-            sublabel="Save all entries as a JSON file"
+            label="बैकअप एक्सपोर्ट"
+            sublabel="सीजन फ़ाइल के रूप में सभी डेटा सेव करें"
             onPress={handleExportBackup}
             right={
               exporting ? (
@@ -108,19 +108,19 @@ export default function SettingsScreen() {
         </View>
 
         {/* About */}
-        <Text style={[s.sectionLabel, { color: colors.textMuted }]}>ABOUT</Text>
+        <Text style={[s.sectionLabel, { color: colors.textMuted }]}>जानकारी</Text>
         <View style={[s.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Row
             icon="information-circle-outline"
             iconColor={colors.info}
             label="गुड्डू पप्पु"
-            sublabel="Version 1.0.0"
+            sublabel="वर्षन 1.0.0"
             right={<View />}
           />
           <Row
             icon="heart-outline"
             iconColor={colors.error}
-            label="Made with ❤️ for cloth workers"
+            label="कपड़ा कारिगरों के लिए ❤️ से बनाया"
             right={<View />}
           />
         </View>

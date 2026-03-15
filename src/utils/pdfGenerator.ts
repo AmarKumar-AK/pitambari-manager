@@ -35,11 +35,11 @@ function buildBillHTML(bill: BillData): string {
         <thead>
           <tr>
             <th>#</th>
-            <th style="text-align:center">Cloth No.</th>
+            <th style="text-align:center">कपड़ा नम्बर</th>
             <th style="text-align:right">लंबाई (चौका)</th>
-            <th style="text-align:right">Color Rate</th>
-            <th style="text-align:right">Color Amount</th>
-            <th style="text-align:right">Total</th>
+            <th style="text-align:right">रंगाई दर</th>
+            <th style="text-align:right">रंगाई राशि</th>
+            <th style="text-align:right">कुल</th>
           </tr>
         </thead>
         <tbody>

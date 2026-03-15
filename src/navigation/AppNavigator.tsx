@@ -58,8 +58,8 @@ function BottomTabs() {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={DashboardScreen} options={{ title: 'Home' }} />
-      <Tab.Screen name="RecordsTab" component={ClothListScreen} options={{ title: 'Records' }} />
+      <Tab.Screen name="HomeTab" component={DashboardScreen} options={{ title: 'घर' }} />
+      <Tab.Screen name="RecordsTab" component={ClothListScreen} options={{ title: 'रिकॉर्ड' }} />
 
       <Tab.Screen
         name="AddTab"
@@ -81,8 +81,8 @@ function BottomTabs() {
         })}
       />
 
-      <Tab.Screen name="CustomersTab" component={CustomersScreen} options={{ title: 'Customers' }} />
-      <Tab.Screen name="MoreTab" component={MoreScreen} options={{ title: 'More' }} />
+      <Tab.Screen name="CustomersTab" component={CustomersScreen} options={{ title: 'ग्राहक' }} />
+      <Tab.Screen name="MoreTab" component={MoreScreen} options={{ title: 'और' }} />
     </Tab.Navigator>
   );
 }
@@ -109,7 +109,7 @@ export default function AppNavigator() {
         name="AddEntry"
         component={AddClothEntryScreen}
         options={{
-          title: 'Add Cloth Entry',
+          title: 'नया माल',
           presentation: 'modal',
           ...headerOptions,
         }}
@@ -119,7 +119,7 @@ export default function AppNavigator() {
         name="EditEntry"
         component={AddClothEntryScreen}
         options={{
-          title: 'Edit Cloth Entry',
+          title: 'एंट्री अपडेट करें',
           presentation: 'modal',
           ...headerOptions,
         }}
@@ -128,7 +128,7 @@ export default function AppNavigator() {
       <Root.Screen
         name="CustomerLedger"
         component={CustomerLedgerScreen}
-        options={{ title: 'Customer Ledger', ...headerOptions }}
+        options={{ title: 'ग्राहक खाता', ...headerOptions }}
       />
 
       <Root.Screen
@@ -140,13 +140,13 @@ export default function AppNavigator() {
       <Root.Screen
         name="Reports"
         component={ReportsScreen}
-        options={{ title: 'Monthly Reports', ...headerOptions }}
+        options={{ title: 'मासिक रिपोर्ट', ...headerOptions }}
       />
 
       <Root.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ title: 'Settings', ...headerOptions }}
+        options={{ title: 'सेटिंग्स', ...headerOptions }}
       />
     </Root.Navigator>
   );
